@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новая тренировка</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <div class="btn-group mb-3" role="group">
+        <a href="{% url 'home_page' %}" class="btn btn-primary">Вернуться на главную</a>
+    </div>
+
+    <h1>Новая тренировка</h1>
+
+    <form method="POST" class="post-form">{% csrf_token %}
+        <div class="form-group">
+            <label for="id_date">Дата (ГГГГ-ММ-ДД):</label>
+            <input type="text" id="id_date" name="date" class="form-control" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" required>
+        </div>
+        <div class="form-group">
+            <label for="id_time">Время (ЧЧ:ММ:СС):</label>
+            <input type="text" id="id_time" name="time" class="form-control" placeholder="HH:MM:SS" pattern="\d{2}:\d{2}:\d{2}" required>
+        </div>
+        <div class="form-group">
+            <label for="id_pool_type">Тип бассейна:</label>
+            <select name="pool_type" id="id_pool_type" class="form-control" required>
+                <option value="1">Большой бассейн</option>
+                <option value="2">Малый бассейн</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id_training_status">Статус тренировки:</label>
+            <select name="training_status" id="id_training_status" class="form-control" required>
+                <option value="1">Открытая</option>
+                <option value="2">Закрытая</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id_trainer">Тренер:</label>
+            <select name="trainer" id="id_trainer" class="form-control" required>
+                {% for trainer in trainers %}
+                <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Дети:</label>
+            {% for child in children %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="children" id="child_{{ child.id }}" value="{{ child.id }}" {% if child in training.children.all %} checked {% endif %}>
+                <label class="form-check-label" for="child_{{ child.id }}">{{ child.name }}</label>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+</body>
+</html>

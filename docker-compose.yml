@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  bot:
+    build:
+      context: ./swim_bot
+
+  web:
+    build:
+      context: ./swim_site/swim_site_backend
+
+  db:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_PORT: ${DB_PORT}
+
+volumes:
+  postgres_data:

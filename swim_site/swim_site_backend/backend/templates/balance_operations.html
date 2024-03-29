@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Операции с балансом</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+    /* Дополнительный стиль для выравнивания кнопок по центру */
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between; /* Равномерное распределение между кнопками */
+    }
+    /* Уменьшаем отступы между кнопками для более компактного вида */
+    .btn-group .btn {
+        flex-grow: 1; /* Кнопки равномерно распределяют доступное пространство */
+        margin: 5px;
+    }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="btn-group mb-3" role="group">
+        <a href="{% url 'home_page' %}" class="btn btn-primary">Вернуться на главную</a>
+        <form action="{% url 'clear_balance_history' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Очистить историю</button>
+        </form>
+    </div>
+
+    <h1>Операции с балансом</h1>
+
+    <!-- Таблица с операциями с балансом -->
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Дата</th>
+                <th scope="col">Время</th>
+                <th scope="col">ФИО ребенка</th>
+                <th scope="col">Добавленные тренировки</th>
+                <th scope="col">Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for operation in operations %}
+                <tr>
+                    <td>{{ operation.date }}</td>
+                    <td>{{ operation.time }}</td>
+                    <td>{{ operation.child_name }}</td>
+                    <td>{{ operation.add_trainings_count }}</td>
+                    <td>
+                        <!-- Форма для отправки запроса на удаление записи -->
+                        <form action="{% url 'delete_balance_operation' operation.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+</body>
+</html>
