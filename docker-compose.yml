@@ -10,6 +10,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: "db"
       DB_PORT: "5432"
+      TOKEN: ${TOKEN}
     depends_on:
       db:
         condition: service_healthy
@@ -19,6 +20,7 @@ services:
     build:
       context: ./swim_site/swim_site_backend
     environment:
+      SECRET_KEY: ${SECRET_KEY}
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
