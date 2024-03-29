@@ -3,7 +3,7 @@ import asyncpg
 
 async def connect_to_db():
     db_params = {
-        'host': DB_HOST,
+        'host': "db",
         'database': DB_NAME,
         'user': DB_USERNAME,
         'password': DB_PASSWORD,

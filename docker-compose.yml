@@ -4,21 +4,45 @@ services:
   bot:
     build:
       context: ./swim_bot
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: "db"
+      DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+
 
   web:
     build:
       context: ./swim_site/swim_site_backend
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: "db"
+      DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
 
   db:
-    image: postgres:latest
+    image: postgres:16.2-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_HOST: ${DB_HOST}
-      POSTGRES_PORT: ${DB_PORT}
-
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 volumes:
   postgres_data:
