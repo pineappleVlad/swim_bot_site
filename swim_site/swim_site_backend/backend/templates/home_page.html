@@ -128,23 +128,29 @@
         </tbody>
     </table>
     <script>
-    const copyButtons = document.querySelectorAll('.copy-button');
-    copyButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const textToCopy = button.getAttribute('data-clipboard-text');
-            const textarea = document.createElement('textarea');
-            textarea.value = textToCopy;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            button.innerText = 'Скопировано!';
-            setTimeout(() => {
-                button.innerText = 'Скопировать список детей';
-            }, 2000);
+        const copyButtons = document.querySelectorAll('.copy-button');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const textToCopy = button.getAttribute('data-clipboard-text');
+                const textLines = textToCopy.split(', ');
+                let copiedText = '';
+                textLines.forEach((line, index) => {
+                    copiedText += (index + 1) + '. ' + line + '\n';
+                });
+                const textarea = document.createElement('textarea');
+                textarea.value = copiedText.trim(); // Удаляем лишние пробелы в конце
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                button.innerText = 'Скопировано!';
+                setTimeout(() => {
+                    button.innerText = 'Скопировать список детей';
+                }, 2000);
+            });
         });
-    });
-</script>
+    </script>
+
 </div>
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
