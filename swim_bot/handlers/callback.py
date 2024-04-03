@@ -138,7 +138,10 @@ async def balance_update(call: CallbackQuery, bot: Bot, state: FSMContext):
 
 async def add_trainings_to_balance(call: CallbackQuery, bot: Bot, state: FSMContext):
     await state.set_state(MainStates.add_training_count_choose)
-    add_trainings_count = call.data[-1]
+    if call.data[-1] == '2' and call.data[-2] == '1':
+        add_trainings_count = '12'
+    else:
+        add_trainings_count = call.data[-1]
     child_name = await get_child_name(call.message.chat.id, table_name='backend_childid')
     add_trainings_result = await balance_update_db(child_name, int(add_trainings_count))
     date_now = datetime.now()

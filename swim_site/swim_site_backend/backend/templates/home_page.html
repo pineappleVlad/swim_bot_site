@@ -25,10 +25,13 @@
 <div class="container mt-5">
     <div class="btn-group" role="group">
         <a href="{% url 'add_training' %}" class="btn btn-primary">Создать новую тренировку</a>
+        <a href="{% url 'balance_operations' %}" class="btn btn-info">Посмотреть историю операций</a>
         <a href="{% url 'add_trainer' %}" class="btn btn-success">Добавить тренера</a>
-        <a href="{% url 'balance_operations' %}" class="btn btn-success">Посмотреть историю операций</a>
-        <a href="{% url 'add_child' %}" class="btn btn-info">Добавить ребенка</a>
+        <a href="{% url 'add_child' %}" class="btn btn-success">Добавить ребенка</a>
+        <a href="{% url 'add_child_list' %}" class="btn btn-success">Добавить детей файлом</a>
         <a href="{% url 'update_balance' %}" class="btn btn-warning">Изменить баланс ребёнка</a>
+        <a href="{% url 'update_trainer_info' %}" class="btn btn-warning">Изменить данные тренера</a>
+        <a href="{% url 'update_child_info' %}" class="btn btn-warning">Изменить данные ребёнка</a>
         <a href="{% url 'trainer_delete' %}" class="btn btn-danger">Удалить тренера</a>
         <a href="{% url 'child_delete' %}" class="btn btn-danger">Удалить ребёнка</a>
     </div>
@@ -39,10 +42,10 @@
     <table class="table table-bordered table-hover">
         <thead class="thead-dark">
             <tr>
-                <th scope="col">Дата</th>
-                <th scope="col">Время</th>
-                <th scope="col">Тип бассейна</th>
-                <th scope="col">Тренер</th>
+                <th scope="col"><a href="?sort=date">Дата</a></th>
+                <th scope="col"><a href="?sort=time">Время</a></th>
+                <th scope="col"><a href="?sort=pool_type">Тип бассейна</a></th>
+                <th scope="col"><a href="?sort=trainer__name">Тренер</a></th>
                 <th scope="col">Дети</th>
                 <th scope="col">Действия</th>
             </tr>
@@ -57,8 +60,9 @@
                         <td>{{ training.trainer.name }}</td>
                         <td>
                             {% for child in training.children.all %}
-                                {{ child.name }}<br>
+                               {{ forloop.counter }}. {{ child.name }}<br>
                             {% endfor %}
+                            <button class="copy-button btn btn-warning btn-sm" data-clipboard-text="{% for child in training.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">Скопировать список детей</button>
                         </td>
                         <td>
                             <!-- Кнопки для редактирования и закрытия тренировки -->
@@ -84,10 +88,10 @@
     <table class="table table-bordered table-hover">
         <thead class="thead-dark">
             <tr>
-                <th scope="col">Дата</th>
-                <th scope="col">Время</th>
-                <th scope="col">Тип бассейна</th>
-                <th scope="col">Тренер</th>
+                <th scope="col"><a href="?sort=date">Дата</a></th>
+                <th scope="col"><a href="?sort=time">Время</a></th>
+                <th scope="col"><a href="?sort=pool_type">Тип бассейна</a></th>
+                <th scope="col"><a href="?sort=trainer__name">Тренер</a></th>
                 <th scope="col">Дети</th>
                 <th scope="col">Действия</th>
             </tr>
@@ -102,8 +106,9 @@
                         <td>{{ training.trainer.name }}</td>
                         <td>
                             {% for child in training.children.all %}
-                                {{ child.name }}<br>
+                                {{ forloop.counter }}. {{ child.name }}<br>
                             {% endfor %}
+                            <button class="copy-button btn btn-warning btn-sm" data-clipboard-text="{% for child in training.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">Скопировать список детей</button>
                         </td>
                         <td>
                             <!-- Кнопка для редактирования тренировки -->
@@ -122,10 +127,25 @@
             {% endfor %}
         </tbody>
     </table>
+    <script>
+    const copyButtons = document.querySelectorAll('.copy-button');
+    copyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const textToCopy = button.getAttribute('data-clipboard-text');
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            button.innerText = 'Скопировано!';
+            setTimeout(() => {
+                button.innerText = 'Скопировать список детей';
+            }, 2000);
+        });
+    });
+</script>
 </div>
-
-
-
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -133,6 +153,7 @@
 
 </body>
 </html>
+
 
 
 

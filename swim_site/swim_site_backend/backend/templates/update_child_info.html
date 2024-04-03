@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Удалить тренера</title>
+    <title>Обновить данные ребенка</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
@@ -12,14 +12,18 @@
             <a href="{% url 'home_page' %}" class="btn btn-primary">Вернуться на главную</a>
         </div>
 
-        <h2>Удалить тренера</h2>
+        <h2>Изменить имя ребенка</h2>
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="id_trainer">Выберите тренера:</label>
-                {{ form.trainer }}
+                <label for="id_child">Выберите ребенка:</label>
+                {{ form.child }}
             </div>
-            <button type="submit" class="btn btn-primary">Удалить</button>
+            <div class="form-group">
+                <label for="id_new_name">Введите новое имя + фамилию:</label>
+                {{ form.new_name }}
+            </div>
+            <button type="submit" class="btn btn-primary">Обновить данные</button>
         </form>
     </div>
 

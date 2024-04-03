@@ -17,9 +17,9 @@ async def start(message: Message, bot: Bot, state: FSMContext):
         pass
     id_check = await parent_exists(message.chat.id)
     if not id_check:
-        await message.answer(text=f'Введите ФИО ребенка \n \n'
+        await message.answer(text=f'Введите имя и фамилию ребёнка \n \n'
                                   f'Обязательно в формате: \n'
-                                  f'Иванов Иван Иванович')
+                                  f'Иванов Иван')
         await state.set_state(MainStates.menu_close)
     else:
         child_names = await get_child_name(message.chat.id, table_name='backend_child')
@@ -34,9 +34,9 @@ async def cancel(message: Message, bot: Bot, state: FSMContext):
         await bot.delete_message(message.chat.id, message.message_id - 1)
     except:
         pass
-    await message.answer(text=f'Введите ФИО ребенка \n \n'
+    await message.answer(text=f'Введите имя и фамилию ребёнка \n \n'
                         f'Обязательно в формате: \n'
-                        f'Иванов Иван Иванович')
+                        f'Иванов Иван')
     await state.set_state(MainStates.menu_close)
 
 

@@ -16,10 +16,10 @@ class Child(models.Model):
 
 class Trainers(models.Model):
     name = models.CharField(max_length=255, verbose_name='Фио тренера')
-    city = models.CharField(max_length=255, verbose_name='Город')
+    club = models.CharField(max_length=255, verbose_name='Клуб', blank=True, null=True)
 
     def __str__(self):
-        return f'{self.name} {self.city}'
+        return f'{self.name} {self.club}'
 
     class Meta:
         verbose_name = 'Тренер'

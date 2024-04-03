@@ -15,12 +15,11 @@ def main_menu_inline_keyboard():
 def update_balance_inline_keyboard():
     keyboard_builder = InlineKeyboardBuilder()
     keyboard_builder.button(text='1', callback_data='add_balance_trainings_1')
-    keyboard_builder.button(text='2', callback_data='add_balance_trainings_2')
-    keyboard_builder.button(text='3', callback_data='add_balance_trainings_3')
     keyboard_builder.button(text='4', callback_data='add_balance_trainings_4')
-    keyboard_builder.button(text='5', callback_data='add_balance_trainings_5')
+    keyboard_builder.button(text='8', callback_data='add_balance_trainings_8')
+    keyboard_builder.button(text='12', callback_data='add_balance_trainings_12')
     keyboard_builder.button(text='Назад', callback_data='back')
-    keyboard_builder.adjust(1, 1, 1, 1, 1, 1)
+    keyboard_builder.adjust(1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()
 
 
