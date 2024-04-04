@@ -1,9 +1,12 @@
+import datetime
+
 import openpyxl
 from django.db import IntegrityError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 import xlrd
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .models import Training, Child, Trainers, BalanceOperations
 from .forms import TrainingForm, TrainersForm, ChildForm, UpdateBalanceForm, TrainerDeleteForm, ChildDeleteForm, TrainerInfoUpdateForm, ChildInfoUpdateForm
@@ -11,8 +14,13 @@ from .forms import TrainingForm, TrainersForm, ChildForm, UpdateBalanceForm, Tra
 
 def home_page(request):
     sort_by = request.GET.get('sort', '-date')
+    trainer_id = request.GET.get('trainer')
     trainings = Training.objects.all().order_by(sort_by)
-    context = {'trainings': trainings}
+    trainers = Trainers.objects.all()
+
+    if trainer_id:
+        trainings = trainings.filter(trainer__id=trainer_id)
+    context = {'trainings': trainings, 'trainers': trainers}
     return render(request, 'home_page.html', context)
 
 def add_training(request):
@@ -27,10 +35,24 @@ def add_training(request):
             children = Child.objects.filter(id__in=children_ids).order_by('name')
             for child in children:
                 child.paid_training_count -= 1
+                child.last_balance_update = timezone.now()
                 try:
                     child.save()
                 except IntegrityError:
                     return render(request, 'add_training.html', {'form': form, 'message': 'Training already exists.'})
+            # Создание расписания по шаблону на месяц вперед
+            if 'create_schedule' in request.POST:
+                start_date_str = request.POST.get('start_date')
+                start_date = timezone.datetime.strptime(start_date_str, '%d-%m-%Y')
+                for i in range(1, 4):  # Создать расписание на 4 недели (можете изменить на нужное количество)
+                    new_training_date = start_date + datetime.timedelta(weeks=i)
+                    new_training = form.instance  # Создаем копию тренировки, сохраненной в форме
+                    new_training.pk = None  # Сбрасываем ID, чтобы создать новую запись
+                    new_training.date = new_training_date
+                    try:
+                        new_training.save()
+                    except IntegrityError:
+                        return render(request, 'add_training.html', {'form': form, 'message': 'Training already exists.'})
             return redirect('home_page')
     else:
         form = TrainingForm()
@@ -45,6 +67,7 @@ def delete_training(request, training_id):
         if training.training_status == '1':
             for child in children:
                 child.paid_training_count += 1
+                child.last_balance_update = timezone.now()
                 try:
                     child.save()
                 except IntegrityError:
@@ -85,6 +108,7 @@ def edit_training(request, training_id):
             for child in initial_children:
                 if child not in updated_children:
                     child.paid_training_count += 1
+                    child.last_balance_update = timezone.now()
                     try:
                         child.save()
                     except IntegrityError:
@@ -93,6 +117,7 @@ def edit_training(request, training_id):
             for child in updated_children:
                 if child not in initial_children:
                     child.paid_training_count -= 1
+                    child.last_balance_update = timezone.now()
                     try:
                         child.save()
                     except IntegrityError:
@@ -132,8 +157,9 @@ def add_child_list(request):
                         row = worksheet.row_values(row_num)
                         name = row[0]
                         paid_training_count = int(row[1])
+                        last_balance_update = timezone.now()
                         try:
-                            Child.objects.create(name=name, paid_training_count=paid_training_count)
+                            Child.objects.create(name=name, paid_training_count=paid_training_count, last_balance_update=last_balance_update)
                         except IntegrityError:
                             continue
                 elif uploaded_file.name.endswith('.xlsx'):
@@ -142,8 +168,9 @@ def add_child_list(request):
                     for row in worksheet.iter_rows(min_row=2, values_only=True):
                         name = row[0]
                         paid_training_count = row[1]
+                        last_balance_update = timezone.now()
                         try:
-                            Child.objects.create(name=name, paid_training_count=paid_training_count)
+                            Child.objects.create(name=name, paid_training_count=paid_training_count, last_balance_update=last_balance_update)
                         except IntegrityError:
                             continue
                 else:
@@ -182,6 +209,7 @@ def update_balance(request):
             child = form.cleaned_data['child']
             new_balance = form.cleaned_data['new_balance']
             child.paid_training_count = new_balance
+            child.last_balance_update = timezone.now()
             try:
                 child.save()
             except IntegrityError:
@@ -290,3 +318,30 @@ def password_block(request):
             return render(request, 'password_block.html', {'error_message': 'Неверный пароль. Попробуйте еще раз.'})
     else:
         return render(request, 'password_block.html')
+
+
+
+def delete_inactive_childs(request):
+    current_date = timezone.now()
+    children = Child.objects.filter(paid_training_count=0)
+    for child in children:
+        last_update_date = child.last_balance_update
+        days_difference = (current_date.date() - last_update_date).days
+        if days_difference >= 90:
+            child.delete()
+    return redirect(reverse('child_delete'))
+
+
+def duplicate_training(request, training_id):
+    original_training = get_object_or_404(Training, id=training_id)
+
+    new_training = Training.objects.create(
+        date=original_training.date,
+        time=original_training.time,
+        pool_type=original_training.pool_type,
+        trainer=original_training.trainer,
+        training_status=original_training.training_status
+    )
+    new_training.children.set(original_training.children.all())
+
+    return redirect(reverse('home_page'))

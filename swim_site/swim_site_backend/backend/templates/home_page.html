@@ -36,6 +36,20 @@
         <a href="{% url 'child_delete' %}" class="btn btn-danger">Удалить ребёнка</a>
     </div>
 
+    <h2>Фильтр по тренеру</h2>
+    <form method="GET" action="{% url 'home_page' %}">
+        <div class="form-group">
+            <label for="trainer">Выберите тренера:</label>
+            <select name="trainer" id="trainer" class="form-control">
+                <option value="">Все тренеры</option>
+                {% for trainer in trainers %}
+                    <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Применить фильтр</button>
+    </form>
+
     <h1>Открытые тренировки</h1>
 
     <!-- Таблица с открытыми тренировками -->
@@ -67,6 +81,10 @@
                         <td>
                             <!-- Кнопки для редактирования и закрытия тренировки -->
                             <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>
+                            <form action="{% url 'duplicate_training' training.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-sm btn-block mt-2">Дублировать тренировку</button>
+                            </form>
                             <form action="{% url 'update_training_status' training.id %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Закрыть тренировку</button>

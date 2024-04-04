@@ -5,6 +5,7 @@ class Child(models.Model):
     name = models.CharField(max_length=255, verbose_name='Фио ребёнка', unique=True)
     paid_training_count = models.IntegerField(default=0, verbose_name='Кол-во оплаченных занятий')
     parent_chat_id = models.IntegerField(blank=True, null=True, verbose_name='Айди чата родителя')
+    last_balance_update = models.DateField(blank=True, null=True, verbose_name='Дата последнего пополнения')
 
     def __str__(self):
         return f'{self.name} | Баланс: {self.paid_training_count}'

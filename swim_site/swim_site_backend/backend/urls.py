@@ -3,7 +3,7 @@ from django.urls import path
 
 from .views import home_page, add_training, delete_training, update_training_status, edit_training, add_trainer, \
     add_child, update_balance, trainer_delete, child_delete, balance_operations, delete_balance_operation, \
-    clear_balance_history, update_child_info, update_trainer_info, add_child_list, password_block
+    clear_balance_history, update_child_info, update_trainer_info, add_child_list, password_block, delete_inactive_childs, duplicate_training
 
 urlpatterns = [
     path('', password_block, name='password_block'),
@@ -23,4 +23,6 @@ urlpatterns = [
     path('update_child_info/', update_child_info, name='update_child_info'),
     path('update_trainer_info/', update_trainer_info, name='update_trainer_info'),
     path('add_child_list/', add_child_list, name='add_child_list'),
+    path('delete_inactive_childs/', delete_inactive_childs, name='delete_inactive_childs'),
+    path('duplicate_training/<int:training_id>/', duplicate_training, name='duplicate_training'),
 ]

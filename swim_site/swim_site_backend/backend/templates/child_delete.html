@@ -12,6 +12,10 @@
             <a href="{% url 'home_page' %}" class="btn btn-primary">Вернуться на главную</a>
         </div>
 
+        <div class="btn-group mb-3" role="group">
+            <a href="{% url 'delete_inactive_childs' %}" class="btn btn-primary">Удалить неактивных детей</a>
+        </div>
+
         <h2>Удалить ребенка</h2>
         <form method="post">
             {% csrf_token %}

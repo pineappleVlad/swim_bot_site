@@ -64,6 +64,17 @@
             </div>
             {% endfor %}
         </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="create-schedule" name="create_schedule">
+            <label class="form-check-label" for="create-schedule">Создать расписание по шаблону на месяц вперед</label>
+        </div>
+
+        <div id="schedule-options" style="display: none;">
+            <div class="form-group">
+                <label for="start-date">Начальная дата:</label>
+                <input type="text" id="start-date" name="start_date" class="form-control datepicker" placeholder="дд-мм-гггг" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+        </div>
         {% if form.errors %}
         <div class="alert alert-danger">
             <strong>Ошибка!</strong> Пожалуйста, исправьте следующие ошибки:
@@ -94,6 +105,15 @@
         dayNames: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
         dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
         dayNamesMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+    });
+    $(document).ready(function() {
+        $('#create-schedule').change(function() {
+            if ($(this).is(':checked')) {
+                $('#schedule-options').show();
+            } else {
+                $('#schedule-options').hide();
+            }
+        });
     });
 </script>
 

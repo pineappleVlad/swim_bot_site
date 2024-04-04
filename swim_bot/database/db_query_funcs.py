@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 from database.db_connection import execute_query, execute_query_training_register
 from utils.info_validation import months_ru
 import datetime
@@ -121,6 +120,7 @@ async def get_trainings_list(child_name):
     return formatted_result
 
 async def child_training_register(child_name, date_value, time_value):
+    date = datetime.datetime.now()
     child_balance = await get_child_balance(child_name)
     if child_balance[0]['paid_training_count'] == 0:
         return False
@@ -131,6 +131,13 @@ async def child_training_register(child_name, date_value, time_value):
         WHERE name = $1 AND paid_training_count > 0;
         """
         await execute_query_training_register(query_balance, (child_name,))
+
+        query_date = """
+        UPDATE backend_child
+        SET last_balance_update = $1
+        WHERE name = $2;
+        """
+        await execute_query_training_register(query_date, (date, child_name))
 
         query_child_register = """
         INSERT INTO backend_training_children (training_id, child_id)
@@ -145,12 +152,20 @@ async def child_training_register(child_name, date_value, time_value):
         return bool(result)
 
 async def child_training_register_delete(child_name, date_value, time_value):
+    date = datetime.datetime.now()
     query_balance = """
     UPDATE backend_child
     SET paid_training_count = paid_training_count + 1
     WHERE name = $1;
     """
     await execute_query_training_register(query_balance, (child_name,))
+
+    query_date = """
+    UPDATE backend_child
+    SET last_balance_update = $1
+    WHERE name = $2;
+    """
+    await execute_query_training_register(query_date, (date, child_name))
 
     query_child_register = """
     DELETE FROM backend_training_children
@@ -204,12 +219,19 @@ async def get_trainings_list_with_date(child_name, date):
     return formatted_result
 
 async def balance_update_db(child_name, trainings_add_count):
+    date = datetime.datetime.now()
     query = """
     UPDATE backend_child
     SET paid_training_count = paid_training_count + CAST($1 AS INTEGER)
     WHERE name = $2;
     """
     result = await execute_query(query, (trainings_add_count, child_name))
+    query_date = """
+    UPDATE backend_child
+    SET last_balance_update = $1
+    WHERE name = $2;
+    """
+    await execute_query_training_register(query_date, (date, child_name))
     return bool(result)
 
 async def operation_add_to_story(child_name, date, time, add_training_count):
