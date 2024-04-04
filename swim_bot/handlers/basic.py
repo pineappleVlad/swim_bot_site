@@ -51,7 +51,7 @@ async def main_menu_handler(message: Message, state: FSMContext):
             await state.set_state(MainStates.menu_open)
         else:
             await message.answer(text=f'Ребенок не найден.\n'
-                                      f'Убедитесь, что написали ФИО в правильном формате или напишите @mvswim')
+                                      f'Убедитесь, что написали ФИО в правильном формате или напишите @mvstandard')
     else:
         await message.answer(text='Выберите действие: ', reply_markup=main_menu_inline_keyboard())
 
