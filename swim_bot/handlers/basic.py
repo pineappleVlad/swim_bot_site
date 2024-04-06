@@ -25,7 +25,7 @@ async def start(message: Message, bot: Bot, state: FSMContext):
         child_names = await get_child_name(message.chat.id, table_name='backend_child')
         if isinstance(child_names, str):
             child_names = [child_names]
-        await message.answer(text='Выберите ребенка из списка', reply_markup=child_names_choosing_keyboard(child_names))
+        await message.answer(text='Выберите ребенка из списка для авторизации', reply_markup=child_names_choosing_keyboard(child_names))
         await state.set_state(MainStates.child_choose)
 
 async def cancel(message: Message, bot: Bot, state: FSMContext):

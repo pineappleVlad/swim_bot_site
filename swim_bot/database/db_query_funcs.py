@@ -1,6 +1,6 @@
 import asyncio
 from database.db_connection import execute_query, execute_query_training_register
-from utils.info_validation import months_ru
+from utils.info_validation import months_ru, format_date_for_sorting
 import datetime
 
 async def fio_check(name):
@@ -106,6 +106,7 @@ async def get_trainings_list(child_name):
     training_list = await execute_query(query, (child_name,))
     formatted_result = []
     for record in training_list[:20]:
+
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
         month_rus = months_ru[date_object.strftime("%B")]
@@ -115,9 +116,11 @@ async def get_trainings_list(child_name):
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
+            'not_form_date': record['date']
         }
         formatted_result.append(formatted_record)
-    return formatted_result
+    sorted_trainings = sorted(formatted_result, key=lambda x: x['not_form_date'])
+    return sorted_trainings
 
 async def child_training_register(child_name, date_value, time_value):
     date = datetime.datetime.now()
@@ -243,6 +246,14 @@ async def operation_add_to_story(child_name, date, time, add_training_count):
     return bool(result)
 
 
+async def delete_child_remote(child_name):
+    query = """
+    UPDATE backend_child
+    SET parent_chat_id = NULL
+    WHERE name = $1;
+    """
+    result = await execute_query(query, [child_name])
+    return bool(result)
 
 
 

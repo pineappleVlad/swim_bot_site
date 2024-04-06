@@ -8,7 +8,9 @@ def main_menu_inline_keyboard():
     keyboard_builder.button(text='Посмотреть последние тренировки', callback_data='training_info')
     keyboard_builder.button(text='Посмотреть баланс', callback_data='balance_view')
     keyboard_builder.button(text='Пополнить баланс', callback_data='balance_update')
-    keyboard_builder.adjust(1, 1, 1, 1, 1)
+    keyboard_builder.button(text='Отвязать ребенка', callback_data='child_delete')
+    keyboard_builder.button(text='Переключиться на другого ребенка', callback_data='child_switch')
+    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()
 
 

@@ -71,3 +71,11 @@ def valid_training_message_date(date):
     date_obj = datetime.strptime(date, "%d %B %Yг.")
     date_result = date_obj.date()
     return date_result
+
+
+def format_date_for_sorting(date_str):
+    not_form_date = date_str.strftime('%Y-%m-%d')
+    date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
+    month_rus = months_ru[date_object.strftime("%B")]
+    formatted_date = date_object.strftime(f"%d {month_rus} %Yг.")
+    return formatted_date

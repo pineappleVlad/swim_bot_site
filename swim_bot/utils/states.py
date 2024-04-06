@@ -16,5 +16,7 @@ class MainStates(StatesGroup):
     booking_cancel_result = State()
     update_balance = State()
     add_training_count_choose = State()
+    child_choose_delete = State()
+    child_delete = State()
 
 
