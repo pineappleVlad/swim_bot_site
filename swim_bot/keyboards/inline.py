@@ -8,9 +8,10 @@ def main_menu_inline_keyboard():
     keyboard_builder.button(text='Посмотреть последние тренировки', callback_data='training_info')
     keyboard_builder.button(text='Посмотреть баланс', callback_data='balance_view')
     keyboard_builder.button(text='Пополнить баланс', callback_data='balance_update')
+    keyboard_builder.button(text='Привязать нового ребенка', callback_data='add_child_remote')
     keyboard_builder.button(text='Отвязать ребенка', callback_data='child_delete')
     keyboard_builder.button(text='Переключиться на другого ребенка', callback_data='child_switch')
-    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1)
+    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()
 
 
@@ -74,4 +75,12 @@ def child_names_choosing_keyboard(child_list):
     for child in child_list:
         keyboard_builder.button(text=child, callback_data=child)
     keyboard_builder.adjust(1, 1, 1, 1, 1)
+    return keyboard_builder.as_markup()
+
+def child_names_choosing_keyboard_with_back_button(child_list):
+    keyboard_builder = InlineKeyboardBuilder()
+    for child in child_list:
+        keyboard_builder.button(text=child, callback_data=child)
+    keyboard_builder.button(text='Назад', callback_data='back')
+    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()

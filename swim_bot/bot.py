@@ -1,7 +1,9 @@
 import asyncio
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
-from handlers.callback import view_stats, view_balance, back_button_callback, training_booking, booking_info_confirm, booking_accept, booking_cancel_choose, booking_cancel_info, booking_cancel_confirm, current_child_save, balance_update, add_trainings_to_balance, child_switch, child_delete_choose, child_delete
+from handlers.callback import view_stats, view_balance, back_button_callback, training_booking, booking_info_confirm, \
+    booking_accept, booking_cancel_choose, booking_cancel_info, booking_cancel_confirm, current_child_save, \
+    balance_update, add_trainings_to_balance, child_switch, child_delete_choose, child_delete, add_child_remote
 from handlers.basic import start, main_menu_handler, cancel
 from utils.states import MainStates
 from config import TOKEN
@@ -24,6 +26,7 @@ async def main():
     dp.callback_query.register(training_booking, F.data.startswith('training_register'), MainStates.menu_open)
     dp.callback_query.register(booking_cancel_choose, F.data.startswith('booking_delete'), MainStates.menu_open)
     dp.callback_query.register(balance_update, F.data.startswith('balance_update'), MainStates.menu_open)
+    dp.callback_query.register(add_child_remote, F.data.startswith('add_child_remote'), MainStates.menu_open)
     dp.callback_query.register(add_trainings_to_balance, F.data.startswith('add_balance_trainings'), MainStates.update_balance)
     dp.callback_query.register(back_button_callback, F.data.startswith('back'))
     dp.callback_query.register(child_delete_choose, F.data.startswith('child_delete'))

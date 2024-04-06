@@ -5,8 +5,8 @@ from aiogram.fsm import state
 from database.db_query_funcs import child_name_id_write, get_child_balance, get_child_name, get_child_trainings, get_trainings_list, child_training_register, child_training_register_delete, balance_update_db, operation_add_to_story, delete_child_remote
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from keyboards.inline import back_button, training_booking_keyboard, training_booking_confirm_keyboard, booking_accept_keyboard, booking_cancel_choose_keyboard, booking_cancel_info_keyboard, update_balance_inline_keyboard, child_names_choosing_keyboard
-from handlers.basic import main_menu_handler, start
+from keyboards.inline import back_button, training_booking_keyboard, training_booking_confirm_keyboard, booking_accept_keyboard, booking_cancel_choose_keyboard, booking_cancel_info_keyboard, update_balance_inline_keyboard, child_names_choosing_keyboard, child_names_choosing_keyboard_with_back_button
+from handlers.basic import main_menu_handler, start, cancel
 from utils.states import MainStates
 from utils.info_validation import valid_training_date_check, valid_training_message_text
 
@@ -161,7 +161,7 @@ async def child_delete_choose(call: CallbackQuery, bot: Bot, state: FSMContext):
     child_names = await get_child_name(call.message.chat.id, table_name='backend_child')
     if isinstance(child_names, str):
         child_names = [child_names]
-    await call.message.answer(text='Выберите ребенка, которого хотите удалить', reply_markup=child_names_choosing_keyboard(child_names))
+    await call.message.answer(text='Выберите ребенка, которого хотите удалить', reply_markup=child_names_choosing_keyboard_with_back_button(child_names))
     await state.set_state(MainStates.child_choose_delete)
     await call.message.delete()
 
@@ -170,4 +170,8 @@ async def child_delete(call: CallbackQuery, bot: Bot, state: FSMContext):
     await state.set_state(MainStates.child_delete)
     result = await delete_child_remote(call.data)
     await start(call.message, bot, state)
+    await call.message.delete()
+
+async def add_child_remote(call: CallbackQuery, bot: Bot, state: FSMContext):
+    await cancel(call.message, bot, state)
     await call.message.delete()

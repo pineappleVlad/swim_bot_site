@@ -36,7 +36,8 @@ async def cancel(message: Message, bot: Bot, state: FSMContext):
         pass
     await message.answer(text=f'Введите имя и фамилию ребёнка \n \n'
                         f'Обязательно в формате: \n'
-                        f'Иванов Иван')
+                        f'Иванов Иван \n'
+                        f'Если хотите вернуться назад - напишите /start')
     await state.set_state(MainStates.menu_close)
 
 
