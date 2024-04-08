@@ -1,3 +1,6 @@
+{% load l10n %}
+{% load humanize %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,9 +44,9 @@
         <div class="form-group">
             <label for="trainer">Выберите тренера:</label>
             <select name="trainer" id="trainer" class="form-control">
-                <option value="">Все тренеры</option>
+                <option value="" {% if not selected_trainer %}selected{% endif %}>Все тренеры</option>
                 {% for trainer in trainers %}
-                    <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                <option value="{{ trainer.id }}" {% if trainer.id == selected_trainer %}selected{% endif %}>{{ trainer.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -68,7 +71,12 @@
             {% for training in trainings %}
                 {% if training.training_status == '1' %}
                     <tr>
-                        <td>{{ training.date|date:"d F Y" }}</td>
+                        <td>
+                            {{ training.date|date:"j F Y" }} <!-- Выводим дату без дня недели -->
+                            {% localize %}
+                                ({{ training.date|date:"l"|title }}) <!-- Выводим день недели на английском -->
+                            {% endlocalize %}
+                        </td>
                         <td>{{ training.time|time:"H:i" }}</td>
                         <td>{{ training.get_pool_type_display }}</td>
                         <td>{{ training.trainer.name }}</td>
@@ -118,7 +126,12 @@
             {% for training in trainings %}
                 {% if training.training_status == '2' %}
                     <tr>
-                        <td>{{ training.date|date:'d F Y' }}</td>
+                        <td>
+                            {{ training.date|date:"j F Y" }} <!-- Выводим дату без дня недели -->
+                            {% localize %}
+                                ({{ training.date|date:"l"|title }}) <!-- Выводим день недели на английском -->
+                            {% endlocalize %}
+                        </td>
                         <td>{{ training.time|time:"H:i" }}</td>
                         <td>{{ training.get_pool_type_display }}</td>
                         <td>{{ training.trainer.name }}</td>

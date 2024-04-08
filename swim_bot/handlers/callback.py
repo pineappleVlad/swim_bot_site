@@ -2,13 +2,13 @@ from datetime import datetime
 
 from aiogram import Bot
 from aiogram.fsm import state
-from database.db_query_funcs import child_name_id_write, get_child_balance, get_child_name, get_child_trainings, get_trainings_list, child_training_register, child_training_register_delete, balance_update_db, operation_add_to_story, delete_child_remote
+from database.db_query_funcs import child_name_id_write, get_child_balance, get_child_name, get_child_trainings, get_trainings_list, child_training_register, child_training_register_delete, balance_update_db, operation_add_to_story, delete_child_remote, get_trainings_list_for_booking
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from keyboards.inline import back_button, training_booking_keyboard, training_booking_confirm_keyboard, booking_accept_keyboard, booking_cancel_choose_keyboard, booking_cancel_info_keyboard, update_balance_inline_keyboard, child_names_choosing_keyboard, child_names_choosing_keyboard_with_back_button
 from handlers.basic import main_menu_handler, start, cancel
 from utils.states import MainStates
-from utils.info_validation import valid_training_date_check, valid_training_message_text
+from utils.info_validation import valid_training_date_check, valid_training_message_text, valid_training_date_check_booking
 
 async def current_child_save(call: CallbackQuery, bot: Bot, state: FSMContext):
     child_name = call.data
@@ -68,8 +68,8 @@ async def training_booking(call: CallbackQuery, bot: Bot, state: FSMContext):
 async def booking_info_confirm(call: CallbackQuery, bot: Bot, state: FSMContext):
     await state.set_state(MainStates.confirm_booking)
     child_name = await get_child_name(call.message.chat.id, table_name='backend_childid')
-    trainings_list_of_dict = await get_trainings_list(child_name)
-    text = valid_training_date_check(call.data, trainings_list_of_dict)
+    trainings_list_of_dict = await get_trainings_list_for_booking(child_name)
+    text = valid_training_date_check_booking(call.data, trainings_list_of_dict)
     await call.message.answer(text=f'Полная информация по тренировке: \n \n'
                                    f'{text}', reply_markup=training_booking_confirm_keyboard())
     await call.message.delete()
@@ -80,9 +80,17 @@ async def booking_accept(call: CallbackQuery, bot: Bot, state: FSMContext):
     child_name = await get_child_name(call.message.chat.id, table_name='backend_childid')
     date_value, time_value = valid_training_message_text(call.message.text)
     res = await child_training_register(child_name, date_value, time_value)
+    balance = await get_child_balance(child_name)
+    current_balance = int(balance[0]['paid_training_count'])
+    if current_balance == 0:
+        balance_alert = f'Остаток на балансе: ⚠️ 0 ⚠️'
+    else:
+        balance_alert = f'Остаток на балансе: {current_balance}'
     if res:
-        await call.message.answer(text=f'Вы успешно записаны на тренировку \n'
-                                       f'{call.message.text}', reply_markup=booking_accept_keyboard())
+        await call.message.answer(text=f'Вы успешно записали ребенка на тренировку \n'
+                                       f'Имя ребенка: {child_name} \n \n'
+                                       f'{call.message.text} \n \n'
+                                       f'{balance_alert}', reply_markup=booking_accept_keyboard())
         await call.message.delete()
     else:
         await call.message.answer(text=f'Пополните баланс тренировок \n', reply_markup=booking_accept_keyboard())
@@ -118,7 +126,8 @@ async def booking_cancel_confirm(call: CallbackQuery, bot: Bot, state: FSMContex
     date_value, time_value = valid_training_message_text(call.message.text)
     res = await child_training_register_delete(child_name, date_value, time_value)
     if res:
-        await call.message.answer(text='Запись успешно удалена', reply_markup=booking_accept_keyboard())
+        await call.message.answer(text=f'Вы успешно выписали ребёнка с тренировки \n'
+                                       f'Имя ребёнка: {child_name}', reply_markup=booking_accept_keyboard())
         await call.message.delete()
     else:
         await call.message.answer(text='Неизвестная ошибка', reply_markup=booking_accept_keyboard())

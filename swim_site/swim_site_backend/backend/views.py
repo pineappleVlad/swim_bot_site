@@ -14,14 +14,30 @@ from .forms import TrainingForm, TrainersForm, ChildForm, UpdateBalanceForm, Tra
 
 def home_page(request):
     sort_by = request.GET.get('sort', '-date')
-    trainer_id = request.GET.get('trainer')
-    trainings = Training.objects.all().order_by(sort_by)
     trainers = Trainers.objects.all()
+    selected_trainer = request.session.get('selected_trainer')
 
-    if trainer_id:
-        trainings = trainings.filter(trainer__id=trainer_id)
-    context = {'trainings': trainings, 'trainers': trainers}
+    if request.method == 'GET':
+        trainer_id = request.GET.get('trainer')
+
+        if trainer_id == "":
+            request.session.pop('selected_trainer', None)
+            return redirect('home_page')
+
+        if trainer_id is not None:
+            request.session['selected_trainer'] = trainer_id
+            selected_trainer = trainer_id
+
+    trainings = Training.objects.all().order_by(sort_by)
+
+    if selected_trainer:
+        trainings = trainings.filter(trainer_id=selected_trainer)
+
+    context = {'trainings': trainings, 'trainers': trainers, 'selected_trainer': selected_trainer}
     return render(request, 'home_page.html', context)
+
+
+
 
 def add_training(request):
     if request.method == 'POST':

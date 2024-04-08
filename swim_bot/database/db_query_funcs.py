@@ -1,6 +1,6 @@
 import asyncio
 from database.db_connection import execute_query, execute_query_training_register
-from utils.info_validation import months_ru, format_date_for_sorting
+from utils.info_validation import months_ru, format_date_for_sorting, day_of_week_ru
 import datetime
 
 async def fio_check(name):
@@ -68,7 +68,8 @@ async def get_child_trainings(child_name):
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
         month_rus = months_ru[date_object.strftime("%B")]
-        formatted_date = date_object.strftime(f"%d {month_rus} %Yг.")
+        weekday_rus = day_of_week_ru[record['date'].weekday()]
+        formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
@@ -110,7 +111,8 @@ async def get_trainings_list(child_name):
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
         month_rus = months_ru[date_object.strftime("%B")]
-        formatted_date = date_object.strftime(f"%d {month_rus} %Yг.")
+        weekday_rus = day_of_week_ru[record['date'].weekday()]
+        formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
@@ -211,7 +213,8 @@ async def get_trainings_list_with_date(child_name, date):
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
         month_rus = months_ru[date_object.strftime("%B")]
-        formatted_date = date_object.strftime(f"%d {month_rus} %Yг.")
+        weekday_rus = day_of_week_ru[record['date'].weekday()]
+        formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
@@ -256,6 +259,45 @@ async def delete_child_remote(child_name):
     return bool(result)
 
 
+async def get_trainings_list_for_booking(child_name):
+    query = """
+    SELECT t.date, t.time, tr.name AS trainer_name,
+    CASE
+        WHEN t.pool_type = '1' THEN 'Большой бассейн'
+        WHEN t.pool_type = '2' THEN 'Малый бассейн'
+    END AS pool_type,
+    (SELECT COUNT(*) 
+     FROM backend_training_children AS tc 
+     WHERE tc.training_id = t.id) AS child_reg_count
+    FROM backend_training AS t
+    INNER JOIN backend_trainers AS tr ON t.trainer_id = tr.id
+    WHERE t.training_status = '1'
+    AND NOT EXISTS (
+        SELECT 1
+        FROM backend_training_children AS tc
+        INNER JOIN backend_child AS c ON tc.child_id = c.id
+        WHERE tc.training_id = t.id AND c.name = $1
+    )
+    """
+    training_list = await execute_query(query, (child_name,))
+    formatted_result = []
+    for record in training_list[:20]:
 
+        not_form_date = record['date'].strftime('%Y-%m-%d')
+        date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
+        month_rus = months_ru[date_object.strftime("%B")]
+        weekday_rus = day_of_week_ru[record['date'].weekday()]
+        formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
+        formatted_record = {
+            'date': formatted_date,
+            'time': record['time'].strftime("%H:%M"),
+            'pool_type': record['pool_type'],
+            'trainer_name': record['trainer_name'],
+            'not_form_date': record['date'],
+            'child_reg_count': record['child_reg_count']
+        }
+        formatted_result.append(formatted_record)
+    sorted_trainings = sorted(formatted_result, key=lambda x: x['not_form_date'])
+    return sorted_trainings
 
 
