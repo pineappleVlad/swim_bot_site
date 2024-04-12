@@ -52,6 +52,8 @@
                 {% endfor %}
             </select>
         </div>
+        <a href="{% url 'add_child' %}" class="btn btn-success">Добавить ребенка</a>
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
         <div class="form-group">
             <label>Дети:</label>
             {% for child in children %}
@@ -83,7 +85,7 @@
 <script>
     $('.datepicker').datepicker({
         dateFormat: 'dd-mm-yy', // Формат даты
-        minDate: 0, // Запретить выбор предыдущих дат
+        minDate: null, // Запретить выбор предыдущих дат
         changeYear: true, // Позволить выбирать год из выпадающего списка
         yearRange: '2022:2050', // Диапазон выбора года
         monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],

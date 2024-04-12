@@ -51,6 +51,7 @@
             </select>
         </div>
         <button type="submit" class="btn btn-primary">Применить фильтр</button>
+        <a href="{% url 'close_expired_trainings' %}" class="btn btn-primary">Закрыть прошедшие тренировки</a>
     </form>
 
     <h1>Открытые тренировки</h1>
@@ -109,6 +110,10 @@
     </table>
 
     <h1>Закрытые тренировки</h1>
+    <br>
+    <a href="{% url 'close_expired_trainings' %}" class="btn btn-primary">Закрыть прошедшие тренировки</a>
+    <br>
+    <br>
 
     <!-- Таблица с закрытыми тренировками -->
     <table class="table table-bordered table-hover">

@@ -28,6 +28,9 @@ def home_page(request):
             request.session['selected_trainer'] = trainer_id
             selected_trainer = trainer_id
 
+
+    request.session['sort_by'] = sort_by
+
     trainings = Training.objects.all().order_by(sort_by)
 
     if selected_trainer:
@@ -35,8 +38,6 @@ def home_page(request):
 
     context = {'trainings': trainings, 'trainers': trainers, 'selected_trainer': selected_trainer}
     return render(request, 'home_page.html', context)
-
-
 
 
 def add_training(request):
@@ -360,4 +361,12 @@ def duplicate_training(request, training_id):
     )
     new_training.children.set(original_training.children.all())
 
+    return redirect(reverse('home_page'))
+
+
+def close_expired_trainings(request):
+    trainings = Training.objects.filter(date__lt=timezone.now(), training_status='1')
+    for training in trainings:
+        training.training_status = '2'
+        training.save()
     return redirect(reverse('home_page'))

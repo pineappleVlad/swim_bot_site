@@ -103,6 +103,7 @@ async def get_trainings_list(child_name):
         INNER JOIN backend_child AS c ON tc.child_id = c.id
         WHERE tc.training_id = t.id AND c.name = $1
     )
+    ORDER BY t.date ASC, t.time ASC
     """
     training_list = await execute_query(query, (child_name,))
     formatted_result = []
@@ -206,6 +207,7 @@ async def get_trainings_list_with_date(child_name, date):
         WHERE tc.training_id = t.id AND c.name = $1
     )
     AND t.date = $2
+    ORDER BY t.date ASC, t.time ASC
     """
     training_list = await execute_query(query, (child_name, date))
     formatted_result = []
@@ -278,6 +280,7 @@ async def get_trainings_list_for_booking(child_name):
         INNER JOIN backend_child AS c ON tc.child_id = c.id
         WHERE tc.training_id = t.id AND c.name = $1
     )
+    ORDER BY t.date ASC, t.time ASC
     """
     training_list = await execute_query(query, (child_name,))
     formatted_result = []
