@@ -36,6 +36,7 @@ def valid_training_date_check(trainer_time_string, trainings_list_of_dict):
             text += f"Время: {training['time']} \n"
             text += f"Тип бассейна: {training['pool_type']} \n"
             text += f"Тренер: {training['trainer_name']} \n"
+            text += f"Описание: {training['description']} \n"
     return text
 
 def valid_training_date_check_booking(trainer_time_string, trainings_list_of_dict):
@@ -49,6 +50,7 @@ def valid_training_date_check_booking(trainer_time_string, trainings_list_of_dic
             text += f"Время: {training['time']} \n"
             text += f"Тип бассейна: {training['pool_type']} \n"
             text += f"Тренер: {training['trainer_name']} \n"
+            text += f"Описание: {training['description']} \n"
             text += f"Записанных детей: {training['child_reg_count']}"
     return text
 

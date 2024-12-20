@@ -32,17 +32,20 @@ def home_page(request):
     request.session['sort_by'] = sort_by
 
     trainings = Training.objects.all().order_by(sort_by)
+    trainings_open = Training.objects.all().order_by()
 
     if selected_trainer:
         trainings = trainings.filter(trainer_id=selected_trainer)
 
-    context = {'trainings': trainings, 'trainers': trainers, 'selected_trainer': selected_trainer}
+    context = {'trainings': trainings, 'trainers': trainers, 'selected_trainer': selected_trainer,
+               'trainings_open': trainings_open}
     return render(request, 'home_page.html', context)
 
 
 def add_training(request):
     if request.method == 'POST':
         form = TrainingForm(request.POST)
+        delete_inactive_childs(request)
         if form.is_valid():
             try:
                 form.save()
@@ -340,11 +343,11 @@ def password_block(request):
 
 def delete_inactive_childs(request):
     current_date = timezone.now()
-    children = Child.objects.filter(paid_training_count=0)
+    children = Child.objects.all()
     for child in children:
         last_update_date = child.last_balance_update
         days_difference = (current_date.date() - last_update_date).days
-        if days_difference >= 90:
+        if days_difference >= 100:
             child.delete()
     return redirect(reverse('child_delete'))
 

@@ -2,10 +2,17 @@ from datetime import datetime
 
 from aiogram import Bot
 from aiogram.fsm import state
-from database.db_query_funcs import child_name_id_write, get_child_balance, get_child_name, get_child_trainings, get_trainings_list, child_training_register, child_training_register_delete, balance_update_db, operation_add_to_story, delete_child_remote, get_trainings_list_for_booking
+from database.db_query_funcs import (child_name_id_write, get_child_balance, get_child_name, get_child_trainings,
+                                     get_trainings_list, child_training_register, child_training_register_delete,
+                                     balance_update_db, operation_add_to_story, delete_child_remote,
+                                     get_trainings_list_for_booking, get_all_trainers)
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from keyboards.inline import back_button, training_booking_keyboard, training_booking_confirm_keyboard, booking_accept_keyboard, booking_cancel_choose_keyboard, booking_cancel_info_keyboard, update_balance_inline_keyboard, child_names_choosing_keyboard, child_names_choosing_keyboard_with_back_button
+from keyboards.inline import (back_button, training_booking_keyboard, training_booking_confirm_keyboard,
+                              booking_accept_keyboard, booking_cancel_choose_keyboard, booking_cancel_info_keyboard,
+                              update_balance_inline_keyboard, child_names_choosing_keyboard,
+                              child_names_choosing_keyboard_with_back_button, pool_type_keyboard_with_back_button,
+                              trainer_list_keyboard_with_back_button)
 from handlers.basic import main_menu_handler, start, cancel
 from utils.states import MainStates
 from utils.info_validation import valid_training_date_check, valid_training_message_text, valid_training_date_check_booking
@@ -24,6 +31,9 @@ async def back_button_callback(call: CallbackQuery, bot: Bot, state: FSMContext)
         await training_booking(call, bot, state)
     elif current_state == MainStates.booking_cancel_confirm:
         await booking_cancel_choose(call, bot, state)
+    elif current_state == MainStates.choose_trainer_state or current_state == MainStates.choose_training_date:
+        await state.set_state(MainStates.choose_pool_type_state)
+        await choose_pool_type(call, bot, state)
     else:
         await state.set_state(MainStates.menu_open)
         await main_menu_handler(call.message, state)
@@ -39,6 +49,7 @@ async def view_stats(call: CallbackQuery, bot: Bot, state: FSMContext):
         text += f"Время: {training['time']}\n"
         text += f"Тип бассейна: {training['pool_type']}\n"
         text += f"Тренер: {training['trainer_name']}\n\n"
+        text += f"Описание: {training['description']}"
     await call.message.answer(text=f'Информация по последним тренировкам, на которые вы записаны (максимум 10) \n \n{text}', reply_markup=back_button())
     await call.message.delete()
 
@@ -54,7 +65,10 @@ async def view_balance(call: CallbackQuery, bot: Bot, state: FSMContext):
 async def training_booking(call: CallbackQuery, bot: Bot, state: FSMContext):
     await state.set_state(MainStates.choose_training_date)
     child_name = await get_child_name(call.message.chat.id, table_name='backend_childid')
-    trainings_list_of_dict = await get_trainings_list(child_name)
+    user_data = await state.get_data()
+    pool_filter = user_data.get('pool_filter', "any")
+    trainer_filter = call.data[8:]
+    trainings_list_of_dict = await get_trainings_list(child_name, pool_filter, trainer_filter)
     trainings_list = []
     for training in trainings_list_of_dict:
         text = ''
@@ -170,17 +184,41 @@ async def child_delete_choose(call: CallbackQuery, bot: Bot, state: FSMContext):
     child_names = await get_child_name(call.message.chat.id, table_name='backend_child')
     if isinstance(child_names, str):
         child_names = [child_names]
-    await call.message.answer(text='Выберите ребенка, которого хотите удалить', reply_markup=child_names_choosing_keyboard_with_back_button(child_names))
+    await call.message.answer(text='Выберите ребенка, которого хотите удалить',
+                              reply_markup=child_names_choosing_keyboard_with_back_button(child_names))
     await state.set_state(MainStates.child_choose_delete)
     await call.message.delete()
 
 
 async def child_delete(call: CallbackQuery, bot: Bot, state: FSMContext):
     await state.set_state(MainStates.child_delete)
-    result = await delete_child_remote(call.data)
+    await delete_child_remote(call.data)
     await start(call.message, bot, state)
     await call.message.delete()
 
 async def add_child_remote(call: CallbackQuery, bot: Bot, state: FSMContext):
     await cancel(call.message, bot, state)
+    await call.message.delete()
+
+
+async def choose_pool_type(call: CallbackQuery, bot: Bot, state: FSMContext):
+    await state.set_state(MainStates.choose_pool_type_state)
+    await call.message.answer(text="Выберите тип бассейна",
+                              reply_markup=pool_type_keyboard_with_back_button())
+    await call.message.delete()
+
+
+async def choose_trainer(call: CallbackQuery, bot: Bot, state: FSMContext):
+    await state.set_state(MainStates.choose_trainer_state)
+    if call.data == "pool_big":
+        pool_filter = 1
+    elif call.data == "pool_small":
+        pool_filter = 2
+    else:
+        pool_filter = "any"
+
+    await state.update_data(pool_filter=pool_filter)
+
+    trainers = await get_all_trainers()
+    await call.message.answer(text="Выберите тренера", reply_markup=trainer_list_keyboard_with_back_button(trainers))
     await call.message.delete()

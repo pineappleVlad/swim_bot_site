@@ -56,6 +56,10 @@
             </select>
         </div>
         <div class="form-group">
+            <label for="id_description">Описание:</label>
+            <textarea id="id_description" name="description" class="form-control" placeholder="Введите описание тренировки" rows="8"></textarea>
+        </div>
+        <div class="form-group">
             <label>Дети:</label>
             {% for child in children %}
             <div class="form-check">

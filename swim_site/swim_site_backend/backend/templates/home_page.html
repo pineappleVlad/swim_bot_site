@@ -65,11 +65,12 @@
                 <th scope="col"><a href="?sort=pool_type">Тип бассейна</a></th>
                 <th scope="col"><a href="?sort=trainer__name">Тренер</a></th>
                 <th scope="col">Дети</th>
+                <th scope="col">Описание</th>
                 <th scope="col">Действия</th>
             </tr>
         </thead>
         <tbody>
-            {% for training in trainings %}
+            {% for training in trainings_open %}
                 {% if training.training_status == '1' %}
                     <tr>
                         <td>
@@ -87,6 +88,7 @@
                             {% endfor %}
                             <button class="copy-button btn btn-warning btn-sm" data-clipboard-text="{% for child in training.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">Скопировать список детей</button>
                         </td>
+                        <td>{{ training.description }}</td>
                         <td>
                             <!-- Кнопки для редактирования и закрытия тренировки -->
                             <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>
@@ -124,6 +126,7 @@
                 <th scope="col"><a href="?sort=pool_type">Тип бассейна</a></th>
                 <th scope="col"><a href="?sort=trainer__name">Тренер</a></th>
                 <th scope="col">Дети</th>
+                <th scope="col">Описание</th>
                 <th scope="col">Действия</th>
             </tr>
         </thead>
@@ -146,6 +149,7 @@
                             {% endfor %}
                             <button class="copy-button btn btn-warning btn-sm" data-clipboard-text="{% for child in training.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">Скопировать список детей</button>
                         </td>
+                        <td>{{ training.description }}</td>
                         <td>
                             <!-- Кнопка для редактирования тренировки -->
                             <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>

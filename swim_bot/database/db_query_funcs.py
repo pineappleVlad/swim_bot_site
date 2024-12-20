@@ -51,7 +51,7 @@ async def get_child_balance(child_name):
 
 async def get_child_trainings(child_name):
     query = """
-    SELECT t.date, t.time, tr.name AS trainer_name,
+    SELECT t.date, t.time, t.description, tr.name AS trainer_name,
     CASE
         WHEN t.pool_type = '1' THEN 'Большой бассейн'
         WHEN t.pool_type = '2' THEN 'Малый бассейн'
@@ -75,6 +75,7 @@ async def get_child_trainings(child_name):
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
+            'description': record['description']
         }
         formatted_result.append(formatted_record)
     return formatted_result
@@ -87,9 +88,9 @@ async def get_child_name(chat_id, table_name):
         names = names[0]
     return names
 
-async def get_trainings_list(child_name):
+async def get_trainings_list(child_name, pool_filter="any", trainer_filter="any"):
     query = """
-    SELECT t.date, t.time, tr.name AS trainer_name,
+    SELECT t.date, t.time, t.description, tr.name AS trainer_name,
     CASE
         WHEN t.pool_type = '1' THEN 'Большой бассейн'
         WHEN t.pool_type = '2' THEN 'Малый бассейн'
@@ -103,11 +104,17 @@ async def get_trainings_list(child_name):
         INNER JOIN backend_child AS c ON tc.child_id = c.id
         WHERE tc.training_id = t.id AND c.name = $1
     )
+    AND (
+        (CASE WHEN $2 = 'any' THEN TRUE ELSE t.pool_type = $2 END)
+    )
+    AND (
+        (CASE WHEN $3 = 'any' THEN TRUE ELSE tr.name = $3 END)
+    )
     ORDER BY t.date ASC, t.time ASC
     """
-    training_list = await execute_query(query, (child_name,))
+    training_list = await execute_query(query, (child_name, str(pool_filter), trainer_filter))
     formatted_result = []
-    for record in training_list[:20]:
+    for record in training_list[:10]:
 
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
@@ -119,7 +126,8 @@ async def get_trainings_list(child_name):
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
-            'not_form_date': record['date']
+            'not_form_date': record['date'],
+            'description': record['description']
         }
         formatted_result.append(formatted_record)
     sorted_trainings = sorted(formatted_result, key=lambda x: x['not_form_date'])
@@ -192,7 +200,7 @@ async def child_training_register_delete(child_name, date_value, time_value):
 
 async def get_trainings_list_with_date(child_name, date):
     query = """
-    SELECT t.date, t.time, tr.name AS trainer_name,
+    SELECT t.date, t.time, t.description, tr.name AS trainer_name,
     CASE
         WHEN t.pool_type = '1' THEN 'Большой бассейн'
         WHEN t.pool_type = '2' THEN 'Малый бассейн'
@@ -211,7 +219,7 @@ async def get_trainings_list_with_date(child_name, date):
     """
     training_list = await execute_query(query, (child_name, date))
     formatted_result = []
-    for record in training_list[:20]:
+    for record in training_list[:10]:
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
         month_rus = months_ru[date_object.strftime("%B")]
@@ -222,6 +230,7 @@ async def get_trainings_list_with_date(child_name, date):
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
+            'description': record['description']
         }
         formatted_result.append(formatted_record)
     return formatted_result
@@ -263,28 +272,29 @@ async def delete_child_remote(child_name):
 
 async def get_trainings_list_for_booking(child_name):
     query = """
-    SELECT t.date, t.time, tr.name AS trainer_name,
-    CASE
-        WHEN t.pool_type = '1' THEN 'Большой бассейн'
-        WHEN t.pool_type = '2' THEN 'Малый бассейн'
-    END AS pool_type,
-    (SELECT COUNT(*) 
-     FROM backend_training_children AS tc 
-     WHERE tc.training_id = t.id) AS child_reg_count
-    FROM backend_training AS t
-    INNER JOIN backend_trainers AS tr ON t.trainer_id = tr.id
-    WHERE t.training_status = '1'
-    AND NOT EXISTS (
-        SELECT 1
-        FROM backend_training_children AS tc
-        INNER JOIN backend_child AS c ON tc.child_id = c.id
-        WHERE tc.training_id = t.id AND c.name = $1
-    )
-    ORDER BY t.date ASC, t.time ASC
-    """
+        SELECT t.date, t.time, t.description, tr.name AS trainer_name,
+        CASE
+            WHEN t.pool_type = '1' THEN 'Большой бассейн'
+            WHEN t.pool_type = '2' THEN 'Малый бассейн'
+        END AS pool_type,
+        (SELECT COUNT(*) 
+         FROM backend_training_children AS tc 
+         WHERE tc.training_id = t.id) AS child_reg_count
+        FROM backend_training AS t
+        INNER JOIN backend_trainers AS tr ON t.trainer_id = tr.id
+        WHERE t.training_status = '1'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM backend_training_children AS tc
+            INNER JOIN backend_child AS c ON tc.child_id = c.id
+            WHERE tc.training_id = t.id AND c.name = $1
+        )
+        ORDER BY t.date ASC, t.time ASC
+        """
+
     training_list = await execute_query(query, (child_name,))
     formatted_result = []
-    for record in training_list[:20]:
+    for record in training_list[:10]:
 
         not_form_date = record['date'].strftime('%Y-%m-%d')
         date_object = datetime.datetime.strptime(not_form_date, "%Y-%m-%d")
@@ -297,10 +307,22 @@ async def get_trainings_list_for_booking(child_name):
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
             'not_form_date': record['date'],
-            'child_reg_count': record['child_reg_count']
+            'child_reg_count': record['child_reg_count'],
+            'description': record['description']
         }
         formatted_result.append(formatted_record)
     sorted_trainings = sorted(formatted_result, key=lambda x: x['not_form_date'])
     return sorted_trainings
 
 
+async def get_all_trainers():
+    query = """
+    SELECT tr.name 
+    FROM backend_trainers AS tr
+    INNER JOIN backend_training AS t ON tr.id = t.trainer_id
+    WHERE t.training_status = '1'
+    GROUP BY tr.id, tr.name
+    """
+    trainers = await execute_query(query)
+    tr_names = [record['name'] for record in trainers]
+    return tr_names
