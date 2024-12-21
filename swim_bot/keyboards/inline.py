@@ -10,8 +10,9 @@ def main_menu_inline_keyboard():
     keyboard_builder.button(text='Пополнить баланс', callback_data='balance_update')
     keyboard_builder.button(text='Привязать нового ребенка', callback_data='add_child_remote')
     keyboard_builder.button(text='Отвязать ребенка', callback_data='child_delete')
+    keyboard_builder.button(text='Подробнее о тренерах', callback_data='trainer_info')
     keyboard_builder.button(text='Переключиться на другого ребенка', callback_data='child_switch')
-    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1)
+    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()
 
 
@@ -101,6 +102,15 @@ def trainer_list_keyboard_with_back_button(trainers_list):
     for trainer in trainers_list:
         keyboard_builder.button(text=trainer, callback_data=f"trainer_{trainer}")
     keyboard_builder.button(text="Любой тренер", callback_data="trainer_any")
+    keyboard_builder.button(text="Назад", callback_data="back")
+    keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    return keyboard_builder.as_markup()
+
+
+def trainer_list_for_info_keyboard_with_back_button(trainers_list):
+    keyboard_builder = InlineKeyboardBuilder()
+    for trainer in trainers_list:
+        keyboard_builder.button(text=trainer, callback_data=f"{trainer}")
     keyboard_builder.button(text="Назад", callback_data="back")
     keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()

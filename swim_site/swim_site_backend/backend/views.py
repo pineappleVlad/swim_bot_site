@@ -47,32 +47,44 @@ def add_training(request):
         form = TrainingForm(request.POST)
         delete_inactive_childs(request)
         if form.is_valid():
+            training_date = form.cleaned_data.get('date')
+            training_time = form.cleaned_data.get('time')
+
+            existing_training = Training.objects.filter(
+                date=training_date,
+                time=training_time,
+                training_status='1'
+            ).exists()
+
+
+            if existing_training:
+                children = Child.objects.all().order_by('name')
+                return render(request, 'add_training.html', {
+                    'form': form,
+                    'error_message': 'Тренировка с такой датой и временем уже существует',
+                    'errors': ['Тренировка с такой датой и временем уже существует'],
+                    'children': children
+                })
             try:
                 form.save()
-            except IntegrityError:
-                return render(request, 'add_training.html', {'form': form, 'message': 'Training already exists.'})
-            children_ids = form.cleaned_data.get('children')
-            children = Child.objects.filter(id__in=children_ids).order_by('name')
-            for child in children:
-                child.paid_training_count -= 1
-                child.last_balance_update = timezone.now()
-                try:
+                children_ids = form.cleaned_data.get('children')
+                children = Child.objects.filter(id__in=children_ids).order_by('name')
+                for child in children:
+                    child.paid_training_count -= 1
+                    child.last_balance_update = timezone.now()
                     child.save()
-                except IntegrityError:
-                    return render(request, 'add_training.html', {'form': form, 'message': 'Training already exists.'})
-            # Создание расписания по шаблону на месяц вперед
-            if 'create_schedule' in request.POST:
-                start_date_str = request.POST.get('start_date')
-                start_date = timezone.datetime.strptime(start_date_str, '%d-%m-%Y')
-                for i in range(1, 4):  # Создать расписание на 4 недели (можете изменить на нужное количество)
-                    new_training_date = start_date + datetime.timedelta(weeks=i)
-                    new_training = form.instance  # Создаем копию тренировки, сохраненной в форме
-                    new_training.pk = None  # Сбрасываем ID, чтобы создать новую запись
-                    new_training.date = new_training_date
-                    try:
+
+                if 'create_schedule' in request.POST:
+                    start_date_str = request.POST.get('start_date')
+                    start_date = timezone.datetime.strptime(start_date_str, '%d-%m-%Y')
+                    for i in range(1, 4):  # Создаем расписание на 4 недели
+                        new_training_date = start_date + datetime.timedelta(weeks=i)
+                        new_training = form.instance
+                        new_training.pk = None
+                        new_training.date = new_training_date
                         new_training.save()
-                    except IntegrityError:
-                        return render(request, 'add_training.html', {'form': form, 'message': 'Training already exists.'})
+            except Exception:
+                return render(request, 'add_training.html', {'form': form, 'error_message': 'Ошибка'})
             return redirect('home_page')
     else:
         form = TrainingForm()
@@ -118,13 +130,38 @@ def edit_training(request, training_id):
 
     if request.method == 'POST':
         form = TrainingForm(request.POST, instance=training)
+
         if form.is_valid():
+            # Проверка на существование тренировки с такой же датой и временем
+            date = form.cleaned_data.get('date')
+            time = form.cleaned_data.get('time')
+
+            if Training.objects.filter(date=date, time=time).exclude(id=training_id).exists():
+                error_message = 'Тренировка на эту дату и время уже есть'
+                return render(request, 'edit_training.html', {
+                    'form': form,
+                    'trainers': trainers,
+                    'children': children,
+                    'training': training,
+                    'error_message': error_message
+                })
+
             try:
+                # Сохраняем обновленную тренировку
                 updated_training = form.save()
             except IntegrityError:
-                return redirect('home_page')
+                error_message = 'An error occurred while saving the training.'
+                return render(request, 'edit_training.html', {
+                    'form': form,
+                    'trainers': trainers,
+                    'children': children,
+                    'training': training,
+                    'error_message': error_message
+                })
+
             updated_children = list(updated_training.children.all())
 
+            # Обновление данных о детях, которые были добавлены или удалены
             for child in initial_children:
                 if child not in updated_children:
                     child.paid_training_count += 1
@@ -143,12 +180,18 @@ def edit_training(request, training_id):
                     except IntegrityError:
                         return redirect('home_page')
 
+            # Сохраняем обновленную тренировку после изменений
             updated_training.save()
             return redirect('home_page')
     else:
         form = TrainingForm(instance=training)
-    return render(request, 'edit_training.html',
-                  {'form': form, 'trainers': trainers, 'children': children, 'training': training})
+
+    return render(request, 'edit_training.html', {
+        'form': form,
+        'trainers': trainers,
+        'children': children,
+        'training': training
+    })
 
 
 def add_trainer(request):

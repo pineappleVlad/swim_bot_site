@@ -12,4 +12,4 @@ class ChildAdmin(admin.ModelAdmin):
 
 @admin.register(Trainers)
 class TrainersAdmin(admin.ModelAdmin):
-    list_display = ('name', 'club')
+    list_display = ('name', 'club', 'info')

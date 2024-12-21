@@ -21,5 +21,7 @@ class MainStates(StatesGroup):
     add_training_count_choose = State()
     child_choose_delete = State()
     child_delete = State()
+    choose_trainer_for_info = State()
+    view_trainer_info = State()
 
 

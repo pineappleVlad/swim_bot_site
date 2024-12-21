@@ -2,6 +2,7 @@ import asyncio
 from database.db_connection import execute_query, execute_query_training_register
 from utils.info_validation import months_ru, format_date_for_sorting, day_of_week_ru
 import datetime
+import re
 
 async def fio_check(name):
     query = "SELECT name FROM backend_child WHERE name = $1"
@@ -70,12 +71,15 @@ async def get_child_trainings(child_name):
         month_rus = months_ru[date_object.strftime("%B")]
         weekday_rus = day_of_week_ru[record['date'].weekday()]
         formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
+        pool_smile, trainer_smile = await check_smiles(record["trainer_name"], record['pool_type'])
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
-            'description': record['description']
+            'description': record['description'],
+            'pool_smile': pool_smile,
+            'trainer_smile': trainer_smile
         }
         formatted_result.append(formatted_record)
     return formatted_result
@@ -121,13 +125,16 @@ async def get_trainings_list(child_name, pool_filter="any", trainer_filter="any"
         month_rus = months_ru[date_object.strftime("%B")]
         weekday_rus = day_of_week_ru[record['date'].weekday()]
         formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
+        pool_smile, trainer_smile = await check_smiles(record["trainer_name"], record['pool_type'])
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
             'not_form_date': record['date'],
-            'description': record['description']
+            'description': record['description'],
+            'smile_pool_type': pool_smile,
+            'smile_trainer': trainer_smile
         }
         formatted_result.append(formatted_record)
     sorted_trainings = sorted(formatted_result, key=lambda x: x['not_form_date'])
@@ -225,12 +232,15 @@ async def get_trainings_list_with_date(child_name, date):
         month_rus = months_ru[date_object.strftime("%B")]
         weekday_rus = day_of_week_ru[record['date'].weekday()]
         formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
+        pool_smile, trainer_smile = await check_smiles(record["trainer_name"], record['pool_type'])
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
             'pool_type': record['pool_type'],
             'trainer_name': record['trainer_name'],
-            'description': record['description']
+            'description': record['description'],
+            'pool_smile': pool_smile,
+            'trainer_smile': trainer_smile
         }
         formatted_result.append(formatted_record)
     return formatted_result
@@ -301,6 +311,7 @@ async def get_trainings_list_for_booking(child_name):
         month_rus = months_ru[date_object.strftime("%B")]
         weekday_rus = day_of_week_ru[record['date'].weekday()]
         formatted_date = date_object.strftime(f"%d {month_rus} %Yг. {weekday_rus}")
+        pool_smile, trainer_smile = await check_smiles(record["trainer_name"], record['pool_type'])
         formatted_record = {
             'date': formatted_date,
             'time': record['time'].strftime("%H:%M"),
@@ -308,7 +319,9 @@ async def get_trainings_list_for_booking(child_name):
             'trainer_name': record['trainer_name'],
             'not_form_date': record['date'],
             'child_reg_count': record['child_reg_count'],
-            'description': record['description']
+            'description': record['description'],
+            "pool_smile": pool_smile,
+            "trainer_smile": trainer_smile
         }
         formatted_result.append(formatted_record)
     sorted_trainings = sorted(formatted_result, key=lambda x: x['not_form_date'])
@@ -322,6 +335,47 @@ async def get_all_trainers():
     INNER JOIN backend_training AS t ON tr.id = t.trainer_id
     WHERE t.training_status = '1'
     GROUP BY tr.id, tr.name
+    """
+    trainers = await execute_query(query)
+    tr_names = [record['name'] for record in trainers]
+    return tr_names
+
+
+async def check_smiles(trainer_name, pool_type):
+    if pool_type == 'Большой бассейн':
+        smile_pool_type = "🐬"
+    elif pool_type == "Малый бассейн":
+        smile_pool_type = "🐠"
+    else:
+        smile_pool_type = ''
+
+    emoji_pattern = re.compile(
+        r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F900-'
+        r'\U0001F9FF\U0001FA70-\U0001FAFF\U00002700-\U000027BF\U0001F000-\U0001FFFF]$')
+
+    if emoji_pattern.search(trainer_name):
+        smile_trainer = trainer_name[-1]
+    else:
+        smile_trainer = ""
+
+    return smile_pool_type, smile_trainer
+
+
+async def get_trainer_info_by_name(trainer_name):
+    query = """
+    SELECT tr.info 
+    FROM backend_trainers AS tr
+    WHERE tr.name = $1;
+    """
+    info = await execute_query(query, (trainer_name,))
+    return str(info[0]['info'])
+
+
+async def get_all_trainers_with_info():
+    query = """
+    SELECT tr.name 
+    FROM backend_trainers AS tr
+    WHERE tr.info IS NOT NULL;
     """
     trainers = await execute_query(query)
     tr_names = [record['name'] for record in trainers]

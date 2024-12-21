@@ -20,9 +20,13 @@ class Child(models.Model):
 class Trainers(models.Model):
     name = models.CharField(max_length=255, verbose_name='Фио тренера')
     club = models.CharField(max_length=255, verbose_name='Клуб', blank=True, null=True)
+    info = models.TextField(verbose_name='Информация о тренере', blank=True, null=True)
 
     def __str__(self):
-        return f'{self.name} {self.club}'
+        if self.club:
+            return f'{self.name} | {self.club}'
+        else:
+            return f'{self.name}'
 
     class Meta:
         verbose_name = 'Тренер'

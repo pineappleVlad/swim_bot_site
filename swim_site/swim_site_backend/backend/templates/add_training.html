@@ -24,6 +24,12 @@
 
     <h1>Новая тренировка</h1>
 
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Ошибка!</strong> {{ error_message }}
+    </div>
+    {% endif %}
+
     <form method="POST" class="post-form">{% csrf_token %}
         <div class="form-group">
             <label for="id_date">Дата (День-Месяц-Год):</label>

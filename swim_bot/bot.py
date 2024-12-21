@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from handlers.callback import view_stats, view_balance, back_button_callback, training_booking, booking_info_confirm, \
     booking_accept, booking_cancel_choose, booking_cancel_info, booking_cancel_confirm, current_child_save, \
     balance_update, add_trainings_to_balance, child_switch, child_delete_choose, child_delete, add_child_remote, \
-    choose_pool_type, choose_trainer
+    choose_pool_type, choose_trainer, choose_trainer_for_info, view_trainer_info
 from handlers.basic import start, main_menu_handler, cancel
 from utils.states import MainStates
 from config import TOKEN
@@ -40,6 +40,9 @@ async def main():
 
     dp.callback_query.register(booking_cancel_info, MainStates.booking_cancel_choose)
     dp.callback_query.register(booking_cancel_confirm, F.data.startswith('booking_cancel'), MainStates.booking_cancel_confirm)
+
+    dp.callback_query.register(choose_trainer_for_info, F.data.startswith('trainer_info'), MainStates.menu_open)
+    dp.callback_query.register(view_trainer_info, MainStates.choose_trainer_for_info)
 
 
 

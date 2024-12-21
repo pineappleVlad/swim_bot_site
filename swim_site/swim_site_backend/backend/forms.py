@@ -38,3 +38,8 @@ class TrainerInfoUpdateForm(forms.Form):
     trainer = forms.ModelChoiceField(queryset=Trainers.objects.all().order_by('name'), label='Выберите тренера')
     new_name = forms.CharField(label='Новое имя', required=False)
     new_club = forms.CharField(label='Новый клуб', required=False)
+    new_info = forms.CharField(
+        required=False,
+        label="Новая информация о тренере",
+        widget=forms.Textarea(attrs={"rows": 8, "class": "form-control"})
+    )
