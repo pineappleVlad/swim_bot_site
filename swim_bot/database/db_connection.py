@@ -22,8 +22,8 @@ async def connect_to_db(): # --- production
 #     }
 #     connection = await asyncpg.connect(**db_params)
 #     return connection
-# async def close_db(connection):
-#     await connection.close()
+async def close_db(connection):
+    await connection.close()
 
 async def execute_query(query, params=None):
     connection = await connect_to_db()
