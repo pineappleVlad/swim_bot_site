@@ -46,6 +46,7 @@ def add_training(request):
     if request.method == 'POST':
         form = TrainingForm(request.POST)
         delete_inactive_childs(request)
+        delete_old_trainings(request)
         if form.is_valid():
             training_date = form.cleaned_data.get('date')
             training_time = form.cleaned_data.get('time')
@@ -392,7 +393,16 @@ def delete_inactive_childs(request):
         days_difference = (current_date.date() - last_update_date).days
         if days_difference >= 100:
             child.delete()
-    return redirect(reverse('child_delete'))
+    return
+
+def delete_old_trainings(request):
+    current_date = timezone.now()
+    trainings = Training.objects.all()
+    for training in trainings:
+        days_difference = (current_date.date() - training.date).days
+        if days_difference >= 45:
+            training.delete()
+    return
 
 
 def duplicate_training(request, training_id):
