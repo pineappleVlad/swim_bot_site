@@ -32,7 +32,7 @@ def home_page(request):
     request.session['sort_by'] = sort_by
 
     trainings = Training.objects.all().order_by(sort_by)
-    trainings_open = Training.objects.all().order_by()
+    trainings_open = Training.objects.all().order_by(sort_by)
 
     if selected_trainer:
         trainings = trainings.filter(trainer_id=selected_trainer)
