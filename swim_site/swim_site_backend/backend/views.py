@@ -360,10 +360,13 @@ def update_trainer_info(request):
             trainer = form.cleaned_data['trainer']
             new_name = form.cleaned_data['new_name']
             new_club = form.cleaned_data['new_club']
+            new_info = form.cleaned_data['new_info']
             if new_name:
                 trainer.name = new_name
             if new_club:
                 trainer.club = new_club
+            if new_info:
+                trainer.info = new_info
             try:
                 trainer.save()
             except IntegrityError:

@@ -33,7 +33,7 @@ DB_PORT = os.getenv('DB_PORT')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bfswim.ru', '127.0.0.1']
+ALLOWED_HOSTS = ['bfswim.ru', '127.0.0.1', '89.111.172.77']
 # ALLOWED_HOSTS = ['127.0.0.1']
 
 
