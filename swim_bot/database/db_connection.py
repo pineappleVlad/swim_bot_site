@@ -1,20 +1,9 @@
 from config import DB_HOST, DB_NAME, DB_PASSWORD, DB_USERNAME, DB_PORT
 import asyncpg
 
-# async def connect_to_db(): # --- production
-#     db_params = {
-#         'host': "db",
-#         'database': DB_NAME,
-#         'user': DB_USERNAME,
-#         'password': DB_PASSWORD,
-#         'port': DB_PORT
-#     }
-#     connection = await asyncpg.connect(**db_params)
-#     return connection
-
-async def connect_to_db(): # --- develop
+async def connect_to_db(): # --- production
     db_params = {
-        'host': DB_HOST,
+        'host': "db",
         'database': DB_NAME,
         'user': DB_USERNAME,
         'password': DB_PASSWORD,
@@ -22,6 +11,17 @@ async def connect_to_db(): # --- develop
     }
     connection = await asyncpg.connect(**db_params)
     return connection
+
+# async def connect_to_db(): # --- develop
+#     db_params = {
+#         'host': DB_HOST,
+#         'database': DB_NAME,
+#         'user': DB_USERNAME,
+#         'password': DB_PASSWORD,
+#         'port': DB_PORT
+#     }
+#     connection = await asyncpg.connect(**db_params)
+#     return connection
 async def close_db(connection):
     await connection.close()
 
