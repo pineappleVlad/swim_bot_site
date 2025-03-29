@@ -27,7 +27,8 @@ day_of_week_ru = {
 
 
 def valid_training_date_check(trainer_time_string, trainings_list_of_dict):
-    date_time_list = trainer_time_string.split()
+    trainer_time_without_emoji = remove_emojis(trainer_time_string)
+    date_time_list = trainer_time_without_emoji.split()
     date = date_time_list[0] + " " + date_time_list[1] + " " + date_time_list[2] + " " + date_time_list[3]
     time = date_time_list[4]
     text = ''
@@ -37,7 +38,7 @@ def valid_training_date_check(trainer_time_string, trainings_list_of_dict):
             text += f"Время: {training['time']} \n"
             text += f"Тип бассейна: {training['pool_type']}{training['pool_smile']} \n"
             text += f"Тренер: {training['trainer_name']} \n"
-            text += f"Описание: {training['description']} \n"
+            text += f"Описание: {training['description']} \n \n"
     return text
 
 def valid_training_date_check_booking(trainer_time_string, trainings_list_of_dict):

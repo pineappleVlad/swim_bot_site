@@ -46,12 +46,13 @@
             <select name="trainer" id="trainer" class="form-control">
                 <option value="" {% if not selected_trainer %}selected{% endif %}>Все тренеры</option>
                 {% for trainer in trainers %}
-                <option value="{{ trainer.id }}" {% if trainer.id == selected_trainer %}selected{% endif %}>{{ trainer.name }}</option>
+                <option value="{{ trainer.id }}" {% if trainer.id|stringformat:"s" == selected_trainer|stringformat:"s" %}selected{% endif %}>{{ trainer.name }}</option>
                 {% endfor %}
             </select>
         </div>
+        <!-- Скрытое поле для сохранения сортировки -->
+        <input type="hidden" name="sort" value="{{ sort_by }}">
         <button type="submit" class="btn btn-primary">Применить фильтр</button>
-        <a href="{% url 'close_expired_trainings' %}" class="btn btn-primary">Закрыть прошедшие тренировки</a>
     </form>
 
     <h1>Открытые тренировки</h1>
@@ -60,10 +61,10 @@
     <table class="table table-bordered table-hover">
         <thead class="thead-dark">
             <tr>
-                <th scope="col"><a href="?sort=date">Дата</a></th>
-                <th scope="col"><a href="?sort=time">Время</a></th>
-                <th scope="col"><a href="?sort=pool_type">Тип бассейна</a></th>
-                <th scope="col"><a href="?sort=trainer__name">Тренер</a></th>
+                <th scope="col"><a href="?sort=date&trainer={{ selected_trainer }}">Дата</a></th>
+                <th scope="col"><a href="?sort=time&trainer={{ selected_trainer }}">Время</a></th>
+                <th scope="col"><a href="?sort=pool_type&trainer={{ selected_trainer }}">Тип бассейна</a></th>
+                <th scope="col"><a href="?sort=trainer__name&trainer={{ selected_trainer }}">Тренер</a></th>
                 <th scope="col">Дети</th>
                 <th scope="col">Описание</th>
                 <th scope="col">Действия</th>
@@ -94,14 +95,20 @@
                             <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>
                             <form action="{% url 'duplicate_training' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-warning btn-sm btn-block mt-2">Дублировать тренировку</button>
                             </form>
                             <form action="{% url 'update_training_status' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Закрыть тренировку</button>
                             </form>
                             <form action="{% url 'delete_training' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Удалить тренировку</button>
                             </form>
                         </td>
@@ -121,10 +128,10 @@
     <table class="table table-bordered table-hover">
         <thead class="thead-dark">
             <tr>
-                <th scope="col"><a href="?sort=date">Дата</a></th>
-                <th scope="col"><a href="?sort=time">Время</a></th>
-                <th scope="col"><a href="?sort=pool_type">Тип бассейна</a></th>
-                <th scope="col"><a href="?sort=trainer__name">Тренер</a></th>
+                <th scope="col"><a href="?sort=date&{{ request.GET.urlencode }}">Дата</a></th>
+                <th scope="col"><a href="?sort=time&{{ request.GET.urlencode }}">Время</a></th>
+                <th scope="col"><a href="?sort=pool_type&{{ request.GET.urlencode }}">Тип бассейна</a></th>
+                <th scope="col"><a href="?sort=trainer__name&{{ request.GET.urlencode }}">Тренер</a></th>
                 <th scope="col">Дети</th>
                 <th scope="col">Описание</th>
                 <th scope="col">Действия</th>
@@ -155,10 +162,14 @@
                             <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>
                             <form action="{% url 'update_training_status' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Открыть тренировку</button>
                             </form>
                             <form action="{% url 'delete_training' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Удалить тренировку</button>
                             </form>
                         </td>

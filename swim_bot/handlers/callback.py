@@ -48,8 +48,8 @@ async def view_stats(call: CallbackQuery, bot: Bot, state: FSMContext):
         text += f"Тренировка {training['date']}\n"
         text += f"Время: {training['time']}\n"
         text += f"Тип бассейна: {training['pool_type']}{training['pool_smile']}\n"
-        text += f"Тренер: {training['trainer_name']}\n\n"
-        text += f"Описание: {training['description']}"
+        text += f"Тренер: {training['trainer_name']}\n"
+        text += f"Описание: {training['description']}\n\n"
     await call.message.answer(text=f'Информация по последним тренировкам, на которые вы записаны (максимум 10) \n \n{text}', reply_markup=back_button())
     await call.message.delete()
 

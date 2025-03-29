@@ -1,7 +1,9 @@
 import datetime
+from urllib.parse import urlencode
 
 import openpyxl
 from django.db import IntegrityError
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 import xlrd
@@ -14,31 +16,26 @@ from .forms import TrainingForm, TrainersForm, ChildForm, UpdateBalanceForm, Tra
 
 def home_page(request):
     sort_by = request.GET.get('sort', '-date')
+    selected_trainer = request.GET.get('trainer', '')
+
     trainers = Trainers.objects.all()
-    selected_trainer = request.session.get('selected_trainer')
-
-    if request.method == 'GET':
-        trainer_id = request.GET.get('trainer')
-
-        if trainer_id == "":
-            request.session.pop('selected_trainer', None)
-            return redirect('home_page')
-
-        if trainer_id is not None:
-            request.session['selected_trainer'] = trainer_id
-            selected_trainer = trainer_id
-
-
-    request.session['sort_by'] = sort_by
 
     trainings = Training.objects.all().order_by(sort_by)
-    trainings_open = Training.objects.all().order_by(sort_by)
+    trainings_open = trainings.filter(training_status='1')
+    trainings_closed = trainings.filter(training_status='2')
 
     if selected_trainer:
-        trainings = trainings.filter(trainer_id=selected_trainer)
+        trainings_open = trainings_open.filter(trainer_id=selected_trainer)
+        trainings_closed = trainings_closed.filter(trainer_id=selected_trainer)
 
-    context = {'trainings': trainings, 'trainers': trainers, 'selected_trainer': selected_trainer,
-               'trainings_open': trainings_open}
+    context = {
+        'trainings_open': trainings_open,
+        'trainings': trainings_closed,
+        'trainers': trainers,
+        'selected_trainer': selected_trainer,
+        'sort_by': sort_by,
+    }
+
     return render(request, 'home_page.html', context)
 
 
@@ -95,6 +92,8 @@ def add_training(request):
 
 def delete_training(request, training_id):
     training = get_object_or_404(Training, pk=training_id)
+    query_params = request.GET.dict()
+    query_params.update(request.POST.dict())
     if request.method == 'POST':
         children = training.children.all()
         if training.training_status == '1':
@@ -106,10 +105,12 @@ def delete_training(request, training_id):
                 except IntegrityError:
                     return redirect('home_page')
         training.delete()
-    return redirect('home_page')
+    return HttpResponseRedirect(f"{reverse('home_page')}?{urlencode(query_params)}")
 
 def update_training_status(request, training_id):
     training = get_object_or_404(Training, pk=training_id)
+    query_params = request.GET.dict()
+    query_params.update(request.POST.dict())
     if request.method == 'POST':
         if training.training_status == '1':
             training.training_status = '2'
@@ -118,8 +119,8 @@ def update_training_status(request, training_id):
         try:
             training.save()
         except IntegrityError:
-            return redirect(reverse('home_page'))
-    return redirect(reverse('home_page'))
+            return HttpResponseRedirect(f"{reverse('home_page')}?{urlencode(query_params)}")
+    return HttpResponseRedirect(f"{reverse('home_page')}?{urlencode(query_params)}")
 
 
 def edit_training(request, training_id):
@@ -410,6 +411,8 @@ def delete_old_trainings(request):
 
 def duplicate_training(request, training_id):
     original_training = get_object_or_404(Training, id=training_id)
+    query_params = request.GET.dict()
+    query_params.update(request.POST.dict())
 
     new_training = Training.objects.create(
         date=original_training.date,
@@ -420,12 +423,14 @@ def duplicate_training(request, training_id):
     )
     new_training.children.set(original_training.children.all())
 
-    return redirect(reverse('home_page'))
+    return HttpResponseRedirect(f"{reverse('home_page')}?{urlencode(query_params)}")
 
 
 def close_expired_trainings(request):
     trainings = Training.objects.filter(date__lt=timezone.now(), training_status='1')
+    query_params = request.GET.dict()
+    query_params.update(request.POST.dict())
     for training in trainings:
         training.training_status = '2'
         training.save()
-    return redirect(reverse('home_page'))
+    return HttpResponseRedirect(f"{reverse('home_page')}?{urlencode(query_params)}")
