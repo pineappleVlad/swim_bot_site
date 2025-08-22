@@ -22,21 +22,38 @@ def home_page(request):
 
     trainings = Training.objects.all().order_by(sort_by)
     trainings_open = trainings.filter(training_status='1')
-    trainings_closed = trainings.filter(training_status='2')
 
     if selected_trainer:
         trainings_open = trainings_open.filter(trainer_id=selected_trainer)
-        trainings_closed = trainings_closed.filter(trainer_id=selected_trainer)
 
     context = {
         'trainings_open': trainings_open,
-        'trainings': trainings_closed,
         'trainers': trainers,
         'selected_trainer': selected_trainer,
         'sort_by': sort_by,
     }
 
     return render(request, 'home_page.html', context)
+
+
+def closed_trainings_page(request):
+    sort_by = request.GET.get('sort', '-date')
+    selected_trainer = request.GET.get('trainer', '')
+
+    trainers = Trainers.objects.all()
+
+    trainings_closed = Training.objects.filter(training_status='2').order_by(sort_by)
+    if selected_trainer:
+        trainings_closed = trainings_closed.filter(trainer_id=selected_trainer)
+
+    context = {
+        'trainings': trainings_closed,
+        'trainers': trainers,
+        'selected_trainer': selected_trainer,
+        'sort_by': sort_by,
+    }
+
+    return render(request, 'closed_trainings.html', context)
 
 
 def add_training(request):
@@ -401,10 +418,11 @@ def delete_inactive_childs(request):
 
 def delete_old_trainings(request):
     current_date = timezone.now()
-    trainings = Training.objects.all()
+    # Удаляем только закрытые тренировки старше 4 месяцев (~120 дней)
+    trainings = Training.objects.filter(training_status='2')
     for training in trainings:
         days_difference = (current_date.date() - training.date).days
-        if days_difference >= 45:
+        if days_difference >= 120:
             training.delete()
     return
 

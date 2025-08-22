@@ -35,8 +35,9 @@ def back_button():
 
 def training_booking_keyboard(trainings_list):
     keyboard_builder = InlineKeyboardBuilder()
-    for training in trainings_list:
-        keyboard_builder.button(text=training, callback_data=training)
+    for idx, training in enumerate(trainings_list):
+        # Use compact callback data to keep under Telegram's 64-byte limit
+        keyboard_builder.button(text=training, callback_data=f"tr_{idx}")
     keyboard_builder.button(text='Назад', callback_data='back')
     keyboard_builder.adjust(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
     return keyboard_builder.as_markup()

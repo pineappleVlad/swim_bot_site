@@ -16,7 +16,7 @@ from keyboards.inline import (back_button, training_booking_keyboard, training_b
                               trainer_list_keyboard_with_back_button, trainer_list_for_info_keyboard_with_back_button)
 from handlers.basic import main_menu_handler, start, cancel
 from utils.states import MainStates
-from utils.info_validation import valid_training_date_check, valid_training_message_text, valid_training_date_check_booking
+from utils.info_validation import valid_training_date_check, valid_training_message_text, valid_training_date_check_booking, valid_training_message_date, remove_emojis
 
 async def current_child_save(call: CallbackQuery, bot: Bot, state: FSMContext):
     child_name = call.data
@@ -76,6 +76,7 @@ async def training_booking(call: CallbackQuery, bot: Bot, state: FSMContext):
         text += f"{training['time']} "
         text += f"{training['smile_trainer']}"
         trainings_list.append(text)
+    await state.update_data(training_options=trainings_list)
     await call.message.answer(text='Выберите тренировку из списка', reply_markup=training_booking_keyboard(trainings_list))
     await call.message.delete()
 
@@ -84,7 +85,30 @@ async def booking_info_confirm(call: CallbackQuery, bot: Bot, state: FSMContext)
     await state.set_state(MainStates.confirm_booking)
     child_name = await get_child_name(call.message.chat.id, table_name='backend_childid')
     trainings_list_of_dict = await get_trainings_list_for_booking(child_name)
-    text = valid_training_date_check_booking(call.data, trainings_list_of_dict)
+    # Resolve compact callback token back to training text if needed
+    selected_value = call.data
+    if selected_value.startswith('tr_'):
+        try:
+            idx = int(selected_value.split('_', 1)[1])
+            user_data = await state.get_data()
+            options = user_data.get('training_options', [])
+            if 0 <= idx < len(options):
+                selected_value = options[idx]
+        except Exception:
+            pass
+    # Parse and store structured date/time for booking to avoid parsing UI text later
+    try:
+        cleaned = remove_emojis(selected_value)
+        parts = cleaned.split()
+        date_only = f"{parts[0]} {parts[1]} {parts[2]}"  # e.g., 05 сентября 2025г.
+        time_only = parts[4]
+        booking_date = valid_training_message_date(date_only)
+        from datetime import datetime as _dt
+        booking_time = _dt.strptime(time_only, "%H:%M").time()
+        await state.update_data(booking_date_value=booking_date, booking_time_value=booking_time)
+    except Exception:
+        pass
+    text = valid_training_date_check_booking(selected_value, trainings_list_of_dict)
     await call.message.answer(text=f'Полная информация по тренировке: \n \n'
                                    f'{text}', reply_markup=training_booking_confirm_keyboard())
     await call.message.delete()
@@ -93,7 +117,12 @@ async def booking_info_confirm(call: CallbackQuery, bot: Bot, state: FSMContext)
 async def booking_accept(call: CallbackQuery, bot: Bot, state: FSMContext):
     await state.set_state(MainStates.booking_accept)
     child_name = await get_child_name(call.message.chat.id, table_name='backend_childid')
-    date_value, time_value = valid_training_message_text(call.message.text)
+    # Prefer structured values stored in state; fallback to parsing message text
+    user_data = await state.get_data()
+    date_value = user_data.get('booking_date_value')
+    time_value = user_data.get('booking_time_value')
+    if date_value is None or time_value is None:
+        date_value, time_value = valid_training_message_text(call.message.text)
     res = await child_training_register(child_name, date_value, time_value)
     balance = await get_child_balance(child_name)
     current_balance = int(balance[0]['paid_training_count'])
