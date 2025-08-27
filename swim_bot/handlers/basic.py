@@ -17,15 +17,15 @@ async def start(message: Message, bot: Bot, state: FSMContext):
         pass
     id_check = await parent_exists(message.chat.id)
     if not id_check:
-        await message.answer(text=f'Введите ФИО ребенка \n \n'
+        await message.answer(text=f'Введите имя и фамилию ребёнка \n \n'
                                   f'Обязательно в формате: \n'
-                                  f'Иванов Иван Иванович')
+                                  f'Иванов Иван')
         await state.set_state(MainStates.menu_close)
     else:
         child_names = await get_child_name(message.chat.id, table_name='backend_child')
         if isinstance(child_names, str):
             child_names = [child_names]
-        await message.answer(text='Выберите ребенка из списка', reply_markup=child_names_choosing_keyboard(child_names))
+        await message.answer(text='Выберите ребенка из списка для авторизации', reply_markup=child_names_choosing_keyboard(child_names))
         await state.set_state(MainStates.child_choose)
 
 async def cancel(message: Message, bot: Bot, state: FSMContext):
@@ -34,9 +34,10 @@ async def cancel(message: Message, bot: Bot, state: FSMContext):
         await bot.delete_message(message.chat.id, message.message_id - 1)
     except:
         pass
-    await message.answer(text=f'Введите ФИО ребенка \n \n'
+    await message.answer(text=f'Введите имя и фамилию ребёнка \n \n'
                         f'Обязательно в формате: \n'
-                        f'Иванов Иван Иванович')
+                        f'Иванов Иван \n'
+                        f'Если хотите вернуться назад - напишите /start')
     await state.set_state(MainStates.menu_close)
 
 
@@ -51,7 +52,7 @@ async def main_menu_handler(message: Message, state: FSMContext):
             await state.set_state(MainStates.menu_open)
         else:
             await message.answer(text=f'Ребенок не найден.\n'
-                                      f'Убедитесь, что написали ФИО в правильном формате или напишите @mvswim')
+                                      f'Убедитесь, что написали ФИО в правильном формате или напишите @mvstandard')
     else:
         await message.answer(text='Выберите действие: ', reply_markup=main_menu_inline_keyboard())
 

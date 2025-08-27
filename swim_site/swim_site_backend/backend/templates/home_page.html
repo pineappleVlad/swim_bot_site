@@ -1,3 +1,6 @@
+{% load l10n %}
+{% load humanize %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,13 +28,33 @@
 <div class="container mt-5">
     <div class="btn-group" role="group">
         <a href="{% url 'add_training' %}" class="btn btn-primary">Создать новую тренировку</a>
+        <a href="{% url 'balance_operations' %}" class="btn btn-info">Посмотреть историю операций</a>
         <a href="{% url 'add_trainer' %}" class="btn btn-success">Добавить тренера</a>
-        <a href="{% url 'balance_operations' %}" class="btn btn-success">Посмотреть историю операций</a>
-        <a href="{% url 'add_child' %}" class="btn btn-info">Добавить ребенка</a>
+        <a href="{% url 'add_child' %}" class="btn btn-success">Добавить ребенка</a>
+        <a href="{% url 'add_child_list' %}" class="btn btn-success">Добавить детей файлом</a>
         <a href="{% url 'update_balance' %}" class="btn btn-warning">Изменить баланс ребёнка</a>
+        <a href="{% url 'update_trainer_info' %}" class="btn btn-warning">Изменить данные тренера</a>
+        <a href="{% url 'update_child_info' %}" class="btn btn-warning">Изменить данные ребёнка</a>
         <a href="{% url 'trainer_delete' %}" class="btn btn-danger">Удалить тренера</a>
         <a href="{% url 'child_delete' %}" class="btn btn-danger">Удалить ребёнка</a>
+        <a href="{% url 'closed_trainings' %}" class="btn btn-secondary">Закрытые тренировки</a>
     </div>
+
+    <h2>Фильтр по тренеру</h2>
+    <form method="GET" action="{% url 'home_page' %}">
+        <div class="form-group">
+            <label for="trainer">Выберите тренера:</label>
+            <select name="trainer" id="trainer" class="form-control">
+                <option value="" {% if not selected_trainer %}selected{% endif %}>Все тренеры</option>
+                {% for trainer in trainers %}
+                <option value="{{ trainer.id }}" {% if trainer.id|stringformat:"s" == selected_trainer|stringformat:"s" %}selected{% endif %}>{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <!-- Скрытое поле для сохранения сортировки -->
+        <input type="hidden" name="sort" value="{{ sort_by }}">
+        <button type="submit" class="btn btn-primary">Применить фильтр</button>
+    </form>
 
     <h1>Открытые тренировки</h1>
 
@@ -39,36 +62,54 @@
     <table class="table table-bordered table-hover">
         <thead class="thead-dark">
             <tr>
-                <th scope="col">Дата</th>
-                <th scope="col">Время</th>
-                <th scope="col">Тип бассейна</th>
-                <th scope="col">Тренер</th>
+                <th scope="col"><a href="?sort=date&trainer={{ selected_trainer }}">Дата</a></th>
+                <th scope="col"><a href="?sort=time&trainer={{ selected_trainer }}">Время</a></th>
+                <th scope="col"><a href="?sort=pool_type&trainer={{ selected_trainer }}">Тип бассейна</a></th>
+                <th scope="col"><a href="?sort=trainer__name&trainer={{ selected_trainer }}">Тренер</a></th>
                 <th scope="col">Дети</th>
+                <th scope="col">Описание</th>
                 <th scope="col">Действия</th>
             </tr>
         </thead>
         <tbody>
-            {% for training in trainings %}
+            {% for training in trainings_open %}
                 {% if training.training_status == '1' %}
                     <tr>
-                        <td>{{ training.date|date:"d F Y" }}</td>
+                        <td>
+                            {{ training.date|date:"j F Y" }} <!-- Выводим дату без дня недели -->
+                            {% localize %}
+                                ({{ training.date|date:"l"|title }}) <!-- Выводим день недели на английском -->
+                            {% endlocalize %}
+                        </td>
                         <td>{{ training.time|time:"H:i" }}</td>
                         <td>{{ training.get_pool_type_display }}</td>
                         <td>{{ training.trainer.name }}</td>
                         <td>
                             {% for child in training.children.all %}
-                                {{ child.name }}<br>
+                               {{ forloop.counter }}. {{ child.name }}<br>
                             {% endfor %}
+                            <button class="copy-button btn btn-warning btn-sm" data-clipboard-text="{% for child in training.children.all %}{{ child.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">Скопировать список детей</button>
                         </td>
+                        <td>{{ training.description }}</td>
                         <td>
                             <!-- Кнопки для редактирования и закрытия тренировки -->
                             <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>
+                            <form action="{% url 'duplicate_training' training.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
+                                <button type="submit" class="btn btn-warning btn-sm btn-block mt-2">Дублировать тренировку</button>
+                            </form>
                             <form action="{% url 'update_training_status' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Закрыть тренировку</button>
                             </form>
                             <form action="{% url 'delete_training' training.id %}" method="post">
                                 {% csrf_token %}
+                                <input type="hidden" name="sort" value="{{ sort_by }}">
+                                <input type="hidden" name="trainer" value="{{ selected_trainer }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Удалить тренировку</button>
                             </form>
                         </td>
@@ -78,54 +119,56 @@
         </tbody>
     </table>
 
-    <h1>Закрытые тренировки</h1>
+    <!-- Блок закрытых тренировок перенесен на отдельную страницу -->
+    <script>
+        const copyButtons = document.querySelectorAll('.copy-button');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const textToCopy = button.getAttribute('data-clipboard-text');
+                const textLines = textToCopy.split(', ');
+                let copiedText = '';
+                textLines.forEach((line, index) => {
+                    copiedText += (index + 1) + '. ' + line + '\n';
+                });
+                const textarea = document.createElement('textarea');
+                textarea.value = copiedText.trim(); // Удаляем лишние пробелы в конце
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                button.innerText = 'Скопировано!';
+                setTimeout(() => {
+                    button.innerText = 'Скопировать список детей';
+                }, 2000);
+            });
+        });
+        // Сохранение выбранных фильтров и сортировки
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const sortParam = params.get('sort');
+            const trainerParam = params.get('trainer');
+            if (sortParam) localStorage.setItem('admin_sort', sortParam);
+            if (trainerParam !== null) localStorage.setItem('admin_trainer', trainerParam);
+            if (!sortParam || trainerParam === null) {
+                const savedSort = localStorage.getItem('admin_sort');
+                const savedTrainer = localStorage.getItem('admin_trainer');
+                let changed = false;
+                if (!sortParam && savedSort) { params.set('sort', savedSort); changed = true; }
+                if (trainerParam === null && savedTrainer !== null) { params.set('trainer', savedTrainer); changed = true; }
+                if (changed) {
+                    window.location.replace(`${window.location.pathname}?${params.toString()}`);
+                }
+            }
+            const trainerSelect = document.getElementById('trainer');
+            if (trainerSelect) {
+                trainerSelect.addEventListener('change', function() {
+                    localStorage.setItem('admin_trainer', this.value);
+                });
+            }
+        })();
+    </script>
 
-    <!-- Таблица с закрытыми тренировками -->
-    <table class="table table-bordered table-hover">
-        <thead class="thead-dark">
-            <tr>
-                <th scope="col">Дата</th>
-                <th scope="col">Время</th>
-                <th scope="col">Тип бассейна</th>
-                <th scope="col">Тренер</th>
-                <th scope="col">Дети</th>
-                <th scope="col">Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for training in trainings %}
-                {% if training.training_status == '2' %}
-                    <tr>
-                        <td>{{ training.date|date:'d F Y' }}</td>
-                        <td>{{ training.time|time:"H:i" }}</td>
-                        <td>{{ training.get_pool_type_display }}</td>
-                        <td>{{ training.trainer.name }}</td>
-                        <td>
-                            {% for child in training.children.all %}
-                                {{ child.name }}<br>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            <!-- Кнопка для редактирования тренировки -->
-                            <a href="{% url 'edit_training' training.id %}" class="btn btn-warning btn-sm btn-block">Редактировать</a>
-                            <form action="{% url 'update_training_status' training.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Открыть тренировку</button>
-                            </form>
-                            <form action="{% url 'delete_training' training.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm btn-block mt-2">Удалить тренировку</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
-
-
-
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -133,6 +176,7 @@
 
 </body>
 </html>
+
 
 
 

@@ -1,10 +1,13 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Child(models.Model):
     name = models.CharField(max_length=255, verbose_name='Фио ребёнка', unique=True)
     paid_training_count = models.IntegerField(default=0, verbose_name='Кол-во оплаченных занятий')
-    parent_chat_id = models.IntegerField(blank=True, null=True, verbose_name='Айди чата родителя')
+    parent_chat_id = models.BigIntegerField(blank=True, null=True, verbose_name='Айди чата родителя')
+    last_balance_update = models.DateField(blank=True, null=True, verbose_name='Дата последнего пополнения',
+                                           auto_now_add=True)
 
     def __str__(self):
         return f'{self.name} | Баланс: {self.paid_training_count}'
@@ -16,10 +19,14 @@ class Child(models.Model):
 
 class Trainers(models.Model):
     name = models.CharField(max_length=255, verbose_name='Фио тренера')
-    city = models.CharField(max_length=255, verbose_name='Город')
+    club = models.CharField(max_length=255, verbose_name='Клуб', blank=True, null=True)
+    info = models.TextField(verbose_name='Информация о тренере', blank=True, null=True)
 
     def __str__(self):
-        return f'{self.name} {self.city}'
+        if self.club:
+            return f'{self.name} | {self.club}'
+        else:
+            return f'{self.name}'
 
     class Meta:
         verbose_name = 'Тренер'
@@ -28,8 +35,8 @@ class Trainers(models.Model):
 
 class Training(models.Model):
     POOL_CHOICES = (
-        ('1', 'Большой бассейн'),
-        ('2', 'Малый бассейн')
+        ('1', 'Большой бассейн 🐬'),
+        ('2', 'Малый бассейн 🐠')
     )
 
     STATUS_CHOICES = (
@@ -43,9 +50,10 @@ class Training(models.Model):
     pool_type = models.CharField(max_length=255, choices=POOL_CHOICES, verbose_name='Тип бассейна')
     trainer = models.ForeignKey(Trainers, on_delete=models.CASCADE, verbose_name='Тренер')
     children = models.ManyToManyField('Child', verbose_name='Дети', blank=True)
+    description = models.TextField(verbose_name='Описание тренировки', blank=True, null=True)
 
     def __str__(self):
-        return f'{self.date} {self.time} {self.training_status} {self.pool_type} {self.trainer}'
+        return f'{self.date} {self.time} {self.training_status} {self.pool_type} {self.trainer} {self.description}'
     class Meta:
         verbose_name = 'Тренировка'
         verbose_name_plural = 'Тренировки'
@@ -53,7 +61,7 @@ class Training(models.Model):
 
 class ChildId(models.Model):
     name = models.CharField(max_length=255, verbose_name='Имя ребенка', unique=True)
-    parent_chat_id = models.IntegerField(verbose_name='Нынешний айди', unique=True)
+    parent_chat_id = models.BigIntegerField(verbose_name='Нынешний айди', unique=True)
 
 
 class BalanceOperations(models.Model):

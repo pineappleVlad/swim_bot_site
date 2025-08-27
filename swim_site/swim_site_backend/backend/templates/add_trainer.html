@@ -19,12 +19,16 @@
 
     <form method="POST" class="post-form">{% csrf_token %}
         <div class="form-group">
-            <label for="id_name">ФИО тренера:</label>
+            <label for="id_name">Имя + фамилия тренера:</label>
             <input type="text" id="id_name" name="name" class="form-control" required>
         </div>
         <div class="form-group">
-            <label for="id_city">Город:</label>
-            <input type="text" id="id_city" name="city" class="form-control" required>
+            <label for="id_club">Клуб:</label>
+            <input type="text" id="id_club" name="club" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="id_info">Информация о тренере:</label>
+            <textarea id="id_info" name="info" class="form-control" rows="8"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Сохранить</button>
     </form>

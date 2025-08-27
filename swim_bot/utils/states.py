@@ -1,5 +1,6 @@
 from aiogram.fsm.state import StatesGroup, State
 
+
 class MainStates(StatesGroup):
     start = State()
     enter_child_name = State()
@@ -8,6 +9,8 @@ class MainStates(StatesGroup):
     menu_close = State()
     view_stats = State()
     view_balance = State()
+    choose_pool_type_state = State()
+    choose_trainer_state = State()
     choose_training_date = State()
     confirm_booking = State()
     booking_accept = State()
@@ -16,5 +19,9 @@ class MainStates(StatesGroup):
     booking_cancel_result = State()
     update_balance = State()
     add_training_count_choose = State()
+    child_choose_delete = State()
+    child_delete = State()
+    choose_trainer_for_info = State()
+    view_trainer_info = State()
 
 

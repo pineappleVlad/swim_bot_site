@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,6 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Новая тренировка</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        .datepicker {
+            z-index: 1151 !important; /* Поднимаем календарь над другими элементами */
+        }
+    </style>
 </head>
 <body>
 
@@ -17,14 +24,20 @@
 
     <h1>Новая тренировка</h1>
 
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Ошибка!</strong> {{ error_message }}
+    </div>
+    {% endif %}
+
     <form method="POST" class="post-form">{% csrf_token %}
         <div class="form-group">
-            <label for="id_date">Дата (ГГГГ-ММ-ДД):</label>
-            <input type="text" id="id_date" name="date" class="form-control" placeholder="YYYY-MM-DD" pattern="\d{4}-\d{2}-\d{2}" required>
+            <label for="id_date">Дата (День-Месяц-Год):</label>
+            <input type="text" id="id_date" name="date" class="form-control datepicker" placeholder="дд-мм-гггг" pattern="\d{2}-\d{2}-\d{4}" required>
         </div>
         <div class="form-group">
-            <label for="id_time">Время (ЧЧ:ММ:СС):</label>
-            <input type="text" id="id_time" name="time" class="form-control" placeholder="HH:MM:SS" pattern="\d{2}:\d{2}:\d{2}" required>
+            <label for="id_time">Время (Часы:Минуты):</label>
+            <input type="text" id="id_time" name="time" class="form-control" placeholder="чч:мм" pattern="\d{2}:\d{2}" required>
         </div>
         <div class="form-group">
             <label for="id_pool_type">Тип бассейна:</label>
@@ -49,6 +62,10 @@
             </select>
         </div>
         <div class="form-group">
+            <label for="id_description">Описание:</label>
+            <textarea id="id_description" name="description" class="form-control" placeholder="Введите описание тренировки" rows="8"></textarea>
+        </div>
+        <div class="form-group">
             <label>Дети:</label>
             {% for child in children %}
             <div class="form-check">
@@ -57,13 +74,59 @@
             </div>
             {% endfor %}
         </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="create-schedule" name="create_schedule">
+            <label class="form-check-label" for="create-schedule">Создать расписание по шаблону на месяц вперед</label>
+        </div>
+
+        <div id="schedule-options" style="display: none;">
+            <div class="form-group">
+                <label for="start-date">Начальная дата:</label>
+                <input type="text" id="start-date" name="start_date" class="form-control datepicker" placeholder="дд-мм-гггг" pattern="\d{2}-\d{2}-\d{4}">
+            </div>
+        </div>
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Ошибка!</strong> Пожалуйста, исправьте следующие ошибки:
+            <ul>
+                {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                <li>{{ field }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
         <button type="submit" class="btn btn-primary">Сохранить</button>
     </form>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script>
+    $('.datepicker').datepicker({
+        dateFormat: 'dd-mm-yy', // Формат даты
+        minDate: null, // Запретить выбор предыдущих дат
+        changeYear: true, // Позволить выбирать год из выпадающего списка
+        yearRange: '2022:2050', // Диапазон выбора года
+        monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+        monthNamesShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+        dayNames: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+        dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+        dayNamesMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+    });
+    $(document).ready(function() {
+        $('#create-schedule').change(function() {
+            if ($(this).is(':checked')) {
+                $('#schedule-options').show();
+            } else {
+                $('#schedule-options').hide();
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
+

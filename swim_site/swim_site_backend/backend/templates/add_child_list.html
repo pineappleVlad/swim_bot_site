@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Новый ребёнок</title>
+    <title>Загрузить список детей</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
@@ -15,16 +15,11 @@
         <a href="{% url 'home_page' %}" class="btn btn-primary">Вернуться на главную</a>
     </div>
 
-    <h1>Новый ребёнок</h1>
-
-    <form method="POST" class="post-form">{% csrf_token %}
+    <h1>Загрузить список детей</h1>
+    <form method="POST" enctype="multipart/form-data" class="post-form">{% csrf_token %}
         <div class="form-group">
-            <label for="id_name">Имя и фамилия ребёнка:</label>
-            <input type="text" id="id_name" name="name" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="id_paid_training_count">Кол-во оплаченных занятий:</label>
-            <input type="number" id="id_paid_training_count" name="paid_training_count" class="form-control" required>
+            <label for="id_file">Загрузить xls или xlsx файл (Внимание: формат строго "Имя + Фамилия | Баланс")</label>
+            <input type="file" id="id_file" name="file" class="form-control-file">
         </div>
         <button type="submit" class="btn btn-primary">Сохранить</button>
     </form>

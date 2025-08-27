@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Обновить баланс</title>
+    <title>Обновить данные тренера</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
@@ -12,18 +12,26 @@
             <a href="{% url 'home_page' %}" class="btn btn-primary">Вернуться на главную</a>
         </div>
 
-        <h2>Изменить баланс ребенка</h2>
+        <h2>Изменить данные тренера</h2>
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="id_child">Выберите ребенка:</label>
-                {{ form.child }}
+                <label for="id_child">Выберите тренера:</label>
+                {{ form.trainer }}
             </div>
             <div class="form-group">
-                <label for="id_new_balance">Новый баланс:</label>
-                {{ form.new_balance }}
+                <label for="id_new_name">Введите новое имя + фамилию (необязательно)</label>
+                {{ form.new_name }}
             </div>
-            <button type="submit" class="btn btn-primary">Обновить баланс</button>
+            <div class="form-group">
+                <label for="id_new_club">Введите новый клуб (необязательно)</label>
+                {{ form.new_club }}
+            </div>
+            <div class="form-group">
+                <label for="id_new_info">Введите новую информацию о тренере (необязательно)</label>
+                {{ form.new_info }}
+            </div>
+            <button type="submit" class="btn btn-primary">Обновить данные</button>
         </form>
     </div>
 
@@ -32,4 +40,3 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>
-
